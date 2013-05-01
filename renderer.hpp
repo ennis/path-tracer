@@ -20,7 +20,9 @@ struct RenderState
 	unsigned int pixelWidth;
 	unsigned int pixelHeight;
 	uint32_t *buffer;
+
 	bool supersampling;
+	bool cosineWeightedSampling;
 	
 	unsigned int numRenderedLines;
 	unsigned int numSamples;

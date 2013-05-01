@@ -16,6 +16,9 @@
 #include "bbox.hpp"
 #include "renderer.hpp"
 #include "plane.hpp"
+#include "triangle.hpp"
+#include "glass.hpp"
+#include "diffuse.hpp"
 
 using namespace std;
 
@@ -47,121 +50,136 @@ void work()
 	rs.pixelWidth = XRES;
 	rs.pixelHeight = YRES;
 	// spp
-	rs.samplesPerPixel = 10;
-	rs.maxDepth = 7;
+	rs.samplesPerPixel = 50;
+	rs.maxDepth = 5;
 	rs.supersampling = true;
+	rs.cosineWeightedSampling = false;
 	
 	// create sphere geom
 	Sphere sphere(0.5f /* radius */ );
 	Sphere light_sphere(2.f /* radius */);
-	Sphere wall(9997.f);
+
+	Plane wall_up_geom(Vec(0, -1, 0));	// facing down
+	Plane wall_down_geom(Vec(0, 1, 0));		// facing up
+
 	Plane wall_plane_geom(Vec(0, 0, -1.f));
 	Plane wall_left_geom(Vec(1, 0, 0));
 	Plane wall_right_geom(Vec(-1, 0, 0));
 
+	Triangle triangle_geom(Point(3.5f, 1.5f, 0.f),
+							Point(4.5f, 1.5f, 0.f),
+							Point(4.5f, 2.5f, 0.f));
+
+	GlassBSDF glass_bsdf(1.2f);
+	DiffuseBSDF diffuse_bsdf;
+
+	//Object obj(new Sphere(), Color(), new GlassMaterial(), )
+
 	// Diffuse mat
-	Material walls_mat;
+	/*Material walls_mat;
 	walls_mat.reflectionType = R_DIFFUSE;
 	walls_mat.brdfType = DIFFUSE_STD;
 	walls_mat.specular = 0.0f;
 	walls_mat.refractiveIndex = 1.0f;
-	walls_mat.brdfData.R0 = 0.5f;
+	walls_mat.brdfData.R0 = 0.5f;*/
 
 	// Specular mat
-	Material spec_mat;
+	/*Material spec_mat;
 	spec_mat.reflectionType = R_SPECULAR;
 	spec_mat.brdfType = DIFFUSE_SCHLICK;
 	spec_mat.specular = 0.5f;
 	spec_mat.refractiveIndex = 1.0f;
-	walls_mat.brdfData.R0 = 0.5f;
+	walls_mat.brdfData.R0 = 0.5f;*/
 
 	// Glass 
-	Material glass;
+	/*Material glass;
 	glass.reflectionType = R_REFRACTIVE;
 	glass.brdfType = DUMMY;
 	glass.specular = 0.0f;
-	glass.refractiveIndex = 1.21f;
+	glass.refractiveIndex = 1.21f;*/
 
 	// Mirror 
-	Material mirror;
+	/*Material mirror;
 	mirror.reflectionType = R_REFLECTIVE;
 	mirror.brdfType = DUMMY;
 	mirror.specular = 0.0f;
-	mirror.refractiveIndex = 1.21f;
+	mirror.refractiveIndex = 1.21f;*/
 
-	Object wall_down;
-	wall_down.position = Point(0,-10000,0);
-	wall_down.color = Vec(0.5,0.0,0.5);
-	wall_down.emittance = Vec(0.0,0.0,0.0);
-	wall_down.geometry = &wall;
-	wall_down.material = &walls_mat;
+	Object wall_down(
+		/* position */ Point(0,-4,0),
+		/* color */ Vec(0.5,0.0,0.5),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &wall_down_geom,
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_down);
 
-	Object wall_up;
-	wall_up.position = Point(0,10000,0);
-	wall_up.color = Vec(0.5,0.2,0.0);
-	wall_up.emittance = Vec(0.0,0.0,0.0);
-	wall_up.geometry = &wall;
-	wall_up.material = &walls_mat;
+	Object wall_up(
+		/* position */ Point(0,4,0),
+		/* color */ Vec(0.5,0.2,0.0),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &wall_up_geom,
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_up);
 
-	Object wall_left;
-	wall_left.position = Point(-6,0,0);
-	wall_left.color =  Vec(1.0,0.8,0.0);
-	wall_left.emittance = Vec(0.0,0.0,0.0);
-	wall_left.geometry = &wall_left_geom;
-	wall_left.material = &mirror;
+	Object wall_left(
+		/* position */ Point(-6,0,0),
+		/* color */ Vec(1.0,0.8,0.0),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &wall_left_geom,
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_left);
 
-	Object wall_right;
-	wall_right.position = Point(6,0,0);
-	wall_right.color = Vec(0.0,0.5,0.2);
-	wall_right.emittance = Vec(0.0,0.0,0.0);
-	wall_right.geometry = &wall_right_geom;
-	wall_right.material = &mirror;
+	Object wall_right(
+		/* position */ Point(6,0,0),
+		/* color */ Vec(0.0,0.5,0.2),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &wall_right_geom,
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_right);
 
-	Object wall_back;
-	wall_back.position = Point(0,0,-10000);
-	wall_back.color = Vec(0.2,0.2,0.2);
-	wall_back.emittance = Vec(0.0,0.0,0.0);
-	wall_back.geometry = &wall;
-	wall_back.material = &walls_mat;
-	//rs.scene.push_back(&wall_back);
+	Object wall_back(
+		/* position */ Point(0,0,5),
+		/* color */ Vec(1.0,1.0,1.0),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &wall_plane_geom,
+		/* bsdf */ &diffuse_bsdf);
+	rs.scene.push_back(&wall_back);
 
-	Object small_sphere;
-	small_sphere.position = Point(4,0,0);
-	small_sphere.color = Vec(1.0,1.0,1.0);
-	small_sphere.emittance = Vec(0.0,0.0,0.0);
-	small_sphere.geometry = &sphere;
-	small_sphere.material = &mirror;
-	rs.scene.push_back(&small_sphere);
-
-	Object glass_sphere;
-	glass_sphere.position = Point(-2,-2,0);
-	glass_sphere.color = Vec(1.0,1.0,1.0);
-	glass_sphere.emittance = Vec(0.0,0.0,0.0);
-	glass_sphere.geometry = &sphere;
-	glass_sphere.material = &glass;
-	rs.scene.push_back(&glass_sphere);
-
-	Object light_source;
-	light_source.position = Point(0,0,0);
-	light_source.color = Vec(1.0,1.0,1.0);
-	light_source.emittance = Vec(4.0,4.0,4.0);
-	light_source.geometry = &light_sphere;
-	light_source.material = NULL;
+	Object light_source(
+		/* position */ Point(0,5,0),
+		/* color */ Vec(1.0,0.2,1.0),
+		/* emittance */ Vec(4.0,4.0,4.0),
+		/* geometry */ &light_sphere,
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&light_source);
 
-	Object back_plane;
-	back_plane.position = Point(0,0,5.0);
-	back_plane.color = Vec(1.0,0.2,1.0);
-	back_plane.emittance = Vec(0.0,0.0,0.0);
-	back_plane.geometry = &wall_plane_geom;
-	back_plane.material = &walls_mat;
-	rs.scene.push_back(&back_plane);
+	/* triangle test */
+	Object triangle(
+		/* position */ Point(0,0,0),
+		/* color */ Vec(0.0,0.2,1.0),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &triangle_geom,
+		/* bsdf */ &diffuse_bsdf);
+	rs.scene.push_back(&triangle);
+
+	Object small_sphere(
+		/* position */ Point(4,0,0),
+		/* color */ Vec(1.0,1.0,1.0),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &sphere,
+		/* bsdf */ &diffuse_bsdf);
+	rs.scene.push_back(&small_sphere);
+
+	Object glass_sphere(
+		/* position */ Point(-2,-2,0),
+		/* color */ Vec(1.0,1.0,1.0),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &sphere,
+		/* bsdf */ &glass_bsdf);
+	rs.scene.push_back(&glass_sphere);
 
 	render(rs);
+
 }
 
 int main(int argc, char ** argv)

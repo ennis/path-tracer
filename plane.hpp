@@ -17,3 +17,5 @@ struct Plane : public Geometry
 	Vec N;
 	
 };
+
+bool rayPlaneIntersection(Ray const& r, Vec const& N, Point const& P, float& dist);

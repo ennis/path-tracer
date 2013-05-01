@@ -14,3 +14,6 @@ Vec scatteredReflectedRay(Vec const& N, Vec const& I);
 Vec specularRay(Vec const& N, Vec const& I, float specular, bool& bounce);
 Vec uniformRandomRay(Vec const& N);
 Vec halfway(Vec const& in, Vec const& out);
+
+Vec sampleCosineWeightedRay(Vec const& N, float sampleX, float sampleY);
+Vec sampleUniformRandomRay(Vec const& N, float sampleX, float sampleY);
