@@ -24,6 +24,7 @@ struct RenderState
 
 	bool supersampling;
 	bool cosineWeightedSampling;
+	bool directLighting;
 	
 	unsigned int numRenderedLines;
 	unsigned int numSamples;

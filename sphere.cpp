@@ -60,7 +60,6 @@ bool Sphere::intersect(Ray const& r, Point const& pos, float& dist, Vec& normal)
 	else {
 		dist = t0;
 	}
-	//dist -= EPSILON;
 	Point P = r.O + dist*r.D;
   	normal = P - pos;
 	return true;

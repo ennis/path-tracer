@@ -6,14 +6,12 @@
 Vec reflectedRay(Vec const& N, Vec const& I)
 {
   Vec O = 2*N*dot(I, N) - I;
-  return O/*.normalized()*/;
+  return O.normalized();
 }
 
 Vec refractedRay(Vec const& N, Vec const& I, float n)
 {
-	Vec In = I.normalized();
-	Vec Nn = N.normalized();
-	float cosi = dot(In,Nn);
+	float cosi = dot(I,N);
 	float rad = 1-(1-cosi*cosi)/(n*n);
 	if (rad < 0) {
 		// total internal reflection
@@ -23,7 +21,7 @@ Vec refractedRay(Vec const& N, Vec const& I, float n)
 	float Nc = sqrt(rad) - cosi/n;
 	float Ic = 1/n;
 	//std::cout << Ic << ' , ' << Nc << '\n';
-	return Ic * In - Nc * Nn;
+	return -1.0f * Ic * I - Nc * N;
 }
 
 Vec scatteredReflectedRay(Vec const& N, Vec const& I)

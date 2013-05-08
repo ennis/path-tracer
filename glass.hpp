@@ -11,11 +11,11 @@ public:
 	Vec sample(Vec const& in, Vec const& N, Vec& out, float sampleX, float sampleY) const
 	{
 		// generate ray in hemisphere
-		if (dot(in,N) < 0) {
+		if (dot(in,N) > 0) {
 	    	out = refractedRay(N, in, m_refractionIndex);
 	    }
 	    else {
-			out = refractedRay(-1.0*N, in, 1.f/m_refractionIndex);
+			out = refractedRay(-1.0f*N, in, 1.f/m_refractionIndex);
 	    }
 		return Vec(1.f, 1.f, 1.f);
 	}

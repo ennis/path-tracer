@@ -126,7 +126,12 @@ static Vec sample(RenderState& rs,
 	}
 
 	// get incoming radiance at this point
-	return color*(e   + value*trace(rs, Ray(hit,out), depth+1, seeLight));
+	if (rs.directLighting) {
+		return color*e;
+	}
+	else {
+		return color*(e + value*trace(rs, Ray(hit,out), depth+1, seeLight));
+	}
 }
 
 /*

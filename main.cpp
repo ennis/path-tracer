@@ -21,6 +21,7 @@
 #include "mirror.hpp"
 #include "specular.hpp"
 #include "schlick.hpp"
+#include "phong.hpp"
 
 using namespace std;
 
@@ -56,6 +57,7 @@ void work()
 	rs.maxDepth = 5;
 	rs.supersampling = true;
 	rs.cosineWeightedSampling = false;
+	rs.directLighting = false;
 	
 	// create sphere geom
 	Sphere sphere(1.1f /* radius */ );
@@ -77,6 +79,7 @@ void work()
 	MirrorBSDF mirror_bsdf;
 	SpecularBSDF specular_bsdf(5.f);
 	SchlickBSDF schlick_bsdf(0.95f);
+	PhongBSDF phong_bsdf(50);
 
 	//Object obj(new Sphere(), Color(), new GlassMaterial(), )
 
@@ -172,7 +175,7 @@ void work()
 		/* color */ Vec(1.0,1.0,1.0),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
-		/* bsdf */ &specular_bsdf);
+		/* bsdf */ &phong_bsdf);
 	rs.scene.push_back(&small_sphere);
 
 	Object glass_sphere(
