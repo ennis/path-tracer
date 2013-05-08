@@ -3,7 +3,7 @@
 
 struct Plane : public Geometry
 {
-	Plane(Vec normal_) : N(normal_.normalized())
+	Plane(Vec const& normal_) : N(normal_.normalized())
 	{}
 
 	virtual ~Plane()

@@ -5,15 +5,15 @@
 
 Vec reflectedRay(Vec const& N, Vec const& I)
 {
-  Vec O = I - 2*N*dot(I, N);
-  return O.normalized();
+  Vec O = 2*N*dot(I, N) - I;
+  return O/*.normalized()*/;
 }
 
 Vec refractedRay(Vec const& N, Vec const& I, float n)
 {
 	Vec In = I.normalized();
 	Vec Nn = N.normalized();
-	float cosi = -dot(In,Nn);
+	float cosi = dot(In,Nn);
 	float rad = 1-(1-cosi*cosi)/(n*n);
 	if (rad < 0) {
 		// total internal reflection
@@ -28,7 +28,7 @@ Vec refractedRay(Vec const& N, Vec const& I, float n)
 
 Vec scatteredReflectedRay(Vec const& N, Vec const& I)
 {
-	Vec O = I - 2*N*dot(I, N*frand(0.9,1.1));
+	Vec O = I - 2*N*dot(I, N*frand(0.5,1.5));
 	//O.x += frand(0.0, 0.1);
 	// slightly rotate vector?
 	return O.normalized();
@@ -44,13 +44,13 @@ Vec specularRay(Vec const& N, Vec const& I, float specCoef, bool& bounce)
 	float theta = acos(z);
 	float phi = frand(0, 2.0f*M_PI);
 	//Vec V = Vec(sin(theta)*cos(phi), sin(theta)*sin(phi), z);
-	Vec Vt = sin(theta)*cos(phi) * T + sin(theta)*sin(phi) * S + z * O;
+	Vec Vt = sin(theta)*cos(phi) * T + sin(theta)*sin(phi) * S + z * O.normalized();
 
 	// out of hemisphere?
-	if (dot(Vt,N) < 0.0) {
+	/*if (dot(Vt,N) < 0.0) {
 		bounce = false;
 		return Vec(0,0,0);
-	}
+	}*/
 	bounce = true;
 	return Vt.normalized();
 }

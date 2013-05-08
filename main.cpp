@@ -13,12 +13,14 @@
 #include "ray.hpp"
 #include "matrix4x4.hpp"
 #include "camera.hpp"
-#include "bbox.hpp"
 #include "renderer.hpp"
 #include "plane.hpp"
 #include "triangle.hpp"
 #include "glass.hpp"
 #include "diffuse.hpp"
+#include "mirror.hpp"
+#include "specular.hpp"
+#include "schlick.hpp"
 
 using namespace std;
 
@@ -50,14 +52,14 @@ void work()
 	rs.pixelWidth = XRES;
 	rs.pixelHeight = YRES;
 	// spp
-	rs.samplesPerPixel = 50;
+	rs.samplesPerPixel = 5;
 	rs.maxDepth = 5;
 	rs.supersampling = true;
 	rs.cosineWeightedSampling = false;
 	
 	// create sphere geom
-	Sphere sphere(0.5f /* radius */ );
-	Sphere light_sphere(2.f /* radius */);
+	Sphere sphere(1.1f /* radius */ );
+	Sphere light_sphere(1.2f /* radius */);
 
 	Plane wall_up_geom(Vec(0, -1, 0));	// facing down
 	Plane wall_down_geom(Vec(0, 1, 0));		// facing up
@@ -66,12 +68,15 @@ void work()
 	Plane wall_left_geom(Vec(1, 0, 0));
 	Plane wall_right_geom(Vec(-1, 0, 0));
 
-	Triangle triangle_geom(Point(3.5f, 1.5f, 0.f),
-							Point(4.5f, 1.5f, 0.f),
-							Point(4.5f, 2.5f, 0.f));
+	Triangle triangle_geom(Point(4.0f, 3.5f, 1.f),
+							Point(1.0f, 1.0f, 1.5f),
+							Point(4.0f, 1.0f, 1.5f));
 
-	GlassBSDF glass_bsdf(1.2f);
+	GlassBSDF glass_bsdf(1.5f);
 	DiffuseBSDF diffuse_bsdf;
+	MirrorBSDF mirror_bsdf;
+	SpecularBSDF specular_bsdf(5.f);
+	SchlickBSDF schlick_bsdf(0.95f);
 
 	//Object obj(new Sphere(), Color(), new GlassMaterial(), )
 
@@ -110,7 +115,7 @@ void work()
 		/* color */ Vec(0.5,0.0,0.5),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_down_geom,
-		/* bsdf */ &diffuse_bsdf);
+		/* bsdf */ &schlick_bsdf);
 	rs.scene.push_back(&wall_down);
 
 	Object wall_up(
@@ -118,7 +123,7 @@ void work()
 		/* color */ Vec(0.5,0.2,0.0),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_up_geom,
-		/* bsdf */ &diffuse_bsdf);
+		/* bsdf */ &schlick_bsdf);
 	rs.scene.push_back(&wall_up);
 
 	Object wall_left(
@@ -126,7 +131,7 @@ void work()
 		/* color */ Vec(1.0,0.8,0.0),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_left_geom,
-		/* bsdf */ &diffuse_bsdf);
+		/* bsdf */ &schlick_bsdf);
 	rs.scene.push_back(&wall_left);
 
 	Object wall_right(
@@ -134,7 +139,7 @@ void work()
 		/* color */ Vec(0.0,0.5,0.2),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_right_geom,
-		/* bsdf */ &diffuse_bsdf);
+		/* bsdf */ &mirror_bsdf);
 	rs.scene.push_back(&wall_right);
 
 	Object wall_back(
@@ -142,15 +147,15 @@ void work()
 		/* color */ Vec(1.0,1.0,1.0),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_plane_geom,
-		/* bsdf */ &diffuse_bsdf);
+		/* bsdf */ &schlick_bsdf);
 	rs.scene.push_back(&wall_back);
 
 	Object light_source(
-		/* position */ Point(0,5,0),
+		/* position */ Point(0,0,-1),
 		/* color */ Vec(1.0,0.2,1.0),
-		/* emittance */ Vec(4.0,4.0,4.0),
+		/* emittance */ Vec(7.0,7.0,7.0),
 		/* geometry */ &light_sphere,
-		/* bsdf */ &diffuse_bsdf);
+		/* bsdf */ &schlick_bsdf);
 	rs.scene.push_back(&light_source);
 
 	/* triangle test */
@@ -159,20 +164,20 @@ void work()
 		/* color */ Vec(0.0,0.2,1.0),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &triangle_geom,
-		/* bsdf */ &diffuse_bsdf);
-	rs.scene.push_back(&triangle);
+		/* bsdf */ &mirror_bsdf);
+	//rs.scene.push_back(&triangle);
 
 	Object small_sphere(
-		/* position */ Point(4,0,0),
+		/* position */ Point(3.f,2.5f,1.f),
 		/* color */ Vec(1.0,1.0,1.0),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
-		/* bsdf */ &diffuse_bsdf);
+		/* bsdf */ &specular_bsdf);
 	rs.scene.push_back(&small_sphere);
 
 	Object glass_sphere(
-		/* position */ Point(-2,-2,0),
-		/* color */ Vec(1.0,1.0,1.0),
+		/* position */ Point(-3.5,-2,1),
+		/* color */ Vec(1,1,1),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
 		/* bsdf */ &glass_bsdf);

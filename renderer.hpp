@@ -14,6 +14,7 @@ struct RenderState
 {
 	// parameters
 	std::vector<Object*> scene;
+	std::vector<Object*> lightSources;
 	unsigned int samplesPerPixel;
 	unsigned int maxDepth;
 	Camera camera;

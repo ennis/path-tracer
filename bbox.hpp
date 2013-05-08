@@ -2,8 +2,9 @@
 #include "vec.hpp"
 #include "ray.hpp"
 #include "matrix4x4.hpp"
+#include "geometry.hpp"
 
-struct AABB
+struct AABB : public Geometry
 {
 	AABB()
 	{
@@ -19,6 +20,11 @@ struct AABB
 		sz0 = std::min(lowerleft.z(), upperright.z());
 		sz1 = std::max(lowerleft.z(), upperright.z());
 	}
+	
+	// In world space
+	virtual bool intersectPred(Ray const& r, Point const& pos) const = 0;
+	// In world space
+	virtual bool intersect(Ray const& r, Point const& pos, float& dist, Vec& normal) const = 0;
 
 	float sx0;
 	float sx1;

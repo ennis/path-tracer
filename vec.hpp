@@ -143,6 +143,11 @@ static inline bool parallel(Vec const& u, Vec const& v)
 	return cross(u, v).norm() < EPSILON;
 }
 
+static inline bool operator==(Vec const& u, Vec const& v)
+{
+	return u.x() == v.x() && u.y() == v.y() && u.z() == v.z();
+}
+
 static inline void genOrtho(Vec const& N, Vec& T, Vec& S)
 {
 	if (!parallel(N, Vec(0,0,1))) 

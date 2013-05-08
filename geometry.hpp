@@ -1,7 +1,6 @@
 #pragma once
 #include "vec.hpp"
 #include "matrix4x4.hpp"
-#include "bbox.hpp"
 
 struct Geometry
 {
