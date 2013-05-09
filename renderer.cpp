@@ -117,7 +117,6 @@ static Vec sample(RenderState& rs,
 				if (obj2 == *obj) {
 					e = e + (*obj)->getEmittance() * (bsdf->eval(in, Rd, normal) * omega * (1.f / M_PI) * dot(normal, Rd));
 					//std::cout << "OK\n";
-					//std::cout << "e=" << e << ", d2=" << d2 << ", cos_max=" << cos_max << '\n';
  
 				} else {
 					//std::cout << "SHADOW\n";
@@ -258,9 +257,10 @@ void render(RenderState& rs)
 	//float sppf = static_cast<float>(rs.samplesPerPixel);
 	const float invssppf = 1.f / static_cast<float>(NUM_SUPERSAMPLES);
 
-	for (unsigned int i = 0; i < rs.pixelHeight; ++i) 
+#pragma omp parallel for
+	for (int i = 0; i < rs.pixelHeight; ++i) 
 	{
-		for (unsigned int j = 0; j < rs.pixelWidth; ++j) 
+		for (int j = 0; j < rs.pixelWidth; ++j) 
 		{
 			Vec accum = Vec(0,0,0);
 			if (rs.supersampling) {

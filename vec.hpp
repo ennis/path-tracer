@@ -105,6 +105,26 @@ static inline Vec operator - (Vec const& V1, Vec const& V2) { return Vec(_mm_sub
 static inline Point operator + (Point const& V1, Vec const& V2) { return Point(_mm_add_ps(V1.xyzw, V2.xyzw)); }
 static inline Point operator - (Point const& V1, Vec const& V2) { return Point(_mm_sub_ps(V1.xyzw, V2.xyzw)); }
 
+static inline Vec operator-(Vec const& v1) { 
+	static const __m128 SIGNMASK = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+	return Vec(_mm_xor_ps(v1.xyzw, SIGNMASK));
+}
+
+static inline void operator+=(Vec& v1, Vec const& v2)
+{
+	v1.xyzw = _mm_add_ps(v1.xyzw, v2.xyzw);
+}
+
+static inline void operator-=(Vec& v1, Vec const& v2)
+{
+	v1.xyzw = _mm_sub_ps(v1.xyzw, v2.xyzw);
+}
+
+static inline void operator*=(Vec& v1, Vec const& v2)
+{
+	v1.xyzw = _mm_sub_ps(v1.xyzw, v2.xyzw);
+}
+
 static inline Vec operator * (float s, Vec const& V) 
 {
 	__m128 t = _mm_set1_ps(s);
@@ -114,6 +134,12 @@ static inline Vec operator * (float s, Vec const& V)
 static inline Vec operator * (Vec const& V, float s) 
 { 
 	return s * V;
+}
+
+static inline Vec operator / (Vec const& V, float s) 
+{ 
+	__m128 t = _mm_set1_ps(s);
+	return Vec(_mm_div_ps(t,V.xyzw));
 }
 
 // component multiply

@@ -17,3 +17,5 @@ Vec halfway(Vec const& in, Vec const& out);
 
 Vec sampleCosineWeightedRay(Vec const& N, float sampleX, float sampleY);
 Vec sampleUniformRandomRay(Vec const& N, float sampleX, float sampleY);
+Vec sampleSpecularRay(Vec const& N, Vec const& I, float specCoef, float sampleX, float sampleY);
+

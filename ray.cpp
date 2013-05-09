@@ -32,27 +32,6 @@ Vec scatteredReflectedRay(Vec const& N, Vec const& I)
 	return O.normalized();
 }
 
-Vec specularRay(Vec const& N, Vec const& I, float specCoef, bool& bounce)
-{
-	// generate rays around reflected ray
-	Vec O = I - 2*N*dot(I, N);
-	Vec T, S;
-	genOrtho(O, T, S);
-	float z = sqrt(1-pow(frand(0,1), specCoef)); // non-uniform sampling; biased for reflection
-	float theta = acos(z);
-	float phi = frand(0, 2.0f*M_PI);
-	//Vec V = Vec(sin(theta)*cos(phi), sin(theta)*sin(phi), z);
-	Vec Vt = sin(theta)*cos(phi) * T + sin(theta)*sin(phi) * S + z * O.normalized();
-
-	// out of hemisphere?
-	/*if (dot(Vt,N) < 0.0) {
-		bounce = false;
-		return Vec(0,0,0);
-	}*/
-	bounce = true;
-	return Vt.normalized();
-}
-
 Vec uniformRandomRay(Vec const& N)
 {
   Vec T, S;
@@ -84,6 +63,19 @@ Vec sampleUniformRandomRay(Vec const& N, float sampleX, float sampleY)
 	float sr2 = sqrt(1-sampleY*sampleY);
 	float phi = sampleX * 2.0f * M_PI;
 	Vec Vt = sr2*cos(phi) * T + sr2*sin(phi) * S + sampleY * N;
+	return Vt;
+}
+
+
+Vec sampleSpecularRay(Vec const& N, Vec const& I, float specCoef, float sampleX, float sampleY)
+{
+	Vec R = reflectedRay(N, I);
+	Vec T, S;
+	genOrtho(R, T, S);
+
+	float sr2 = sqrt(1-pow(sampleY, 2/(specCoef+1)));
+	float phi = sampleX * 2.0f * M_PI;
+	Vec Vt = sr2*cos(phi) * T + sr2*sin(phi) * S + pow(sampleY, 1/(specCoef+1)) * R;
 	return Vt;
 }
 

@@ -53,11 +53,11 @@ void work()
 	rs.pixelWidth = XRES;
 	rs.pixelHeight = YRES;
 	// spp
-	rs.samplesPerPixel = 500;
+	rs.samplesPerPixel = 200;
 	rs.maxDepth = 5;
 	rs.supersampling = true;
 	rs.cosineWeightedSampling = false;
-	rs.directLighting = false;
+	rs.directLighting = true;
 	
 	// create sphere geom
 	Sphere sphere(1.1f /* radius */ );
@@ -78,7 +78,7 @@ void work()
 	GlassBSDF transparent_glass_bsdf(1.5f, 0.f);
 	DiffuseBSDF diffuse_bsdf;
 	MirrorBSDF mirror_bsdf;
-	SpecularBSDF specular_bsdf(5.f);
+	SpecularBSDF specular_bsdf(50.f);
 	SchlickBSDF schlick_bsdf(0.95f);
 	PhongBSDF phong_bsdf(50);
 
@@ -185,14 +185,14 @@ void work()
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
 		/* bsdf */ &glass_bsdf);
-	rs.scene.push_back(&glass_sphere);
+	//rs.scene.push_back(&glass_sphere);
 
 	Object mirror_sphere(
 		/* position */ Point(-3,0,0),
 		/* color */ Vec(1,1,1),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
-		/* bsdf */ &mirror_bsdf);
+		/* bsdf */ &specular_bsdf);
 	rs.scene.push_back(&mirror_sphere);
 
 	Object glass2_sphere(
@@ -201,7 +201,7 @@ void work()
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
 		/* bsdf */ &transparent_glass_bsdf);
-	rs.scene.push_back(&glass2_sphere);
+	//rs.scene.push_back(&glass2_sphere);
 
 	render(rs);
 
@@ -254,8 +254,9 @@ int main(int argc, char ** argv)
 		// update texture
 		curLine = rs.numRenderedLines;
 		if (curLine > numTexLines) {
-			texture.update((sf::Uint8*)(rs.buffer + XRES*numTexLines), XRES, 
-							curLine-numTexLines, 0, numTexLines);
+			/*texture.update((sf::Uint8*)(rs.buffer + XRES*numTexLines), XRES, 
+							curLine-numTexLines, 0, numTexLines);*/
+			texture.update((sf::Uint8*)(rs.buffer), XRES, YRES, 0, 0);
 			numTexLines = curLine;
 		}
 
