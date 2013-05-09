@@ -10,7 +10,7 @@ public:
 	SpecularBSDF(float specularCoef) : specularCoef_(specularCoef)
 	{}
 
-	Vec sample(Vec const& in, Vec const& N, Vec& out, float sampleX, float sampleY) const
+	Vec sample(Vec const& in, Vec const& N, Vec& out, bool& specular, float sampleX, float sampleY) const
 	{
 		// generate ray in hemisphere
 		bool bounce;
@@ -19,6 +19,7 @@ public:
 		if (dot(N,out) < 0.f) {
 			return Vec(0.f, 0.f, 0.f);
 		}
+		specular = true;
 		return Vec(1.f, 1.f, 1.f);
 	}
 

@@ -4,6 +4,7 @@
 #include <thread>
 #include <atomic>
 #include <sstream>
+#include <ctime>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
@@ -22,13 +23,13 @@
 #include "specular.hpp"
 #include "schlick.hpp"
 #include "phong.hpp"
+#include "ashikhmin_shirley.hpp"
 
 using namespace std;
 
 static const unsigned int XRES = 800;
 static const unsigned int YRES = 600;
 static const float ASPECT_RATIO = static_cast<float>(XRES)/static_cast<float>(YRES);
-	
 
 sf::Texture texture;
 RenderState rs;
@@ -53,15 +54,18 @@ void work()
 	rs.pixelWidth = XRES;
 	rs.pixelHeight = YRES;
 	// spp
-	rs.samplesPerPixel = 200;
+	rs.samplesPerPixel = 50;
 	rs.maxDepth = 5;
 	rs.supersampling = true;
 	rs.cosineWeightedSampling = false;
-	rs.directLighting = true;
+	rs.directLightingOnly = true;
+	rs.explicitLightSampling = true;
 	
 	// create sphere geom
 	Sphere sphere(1.1f /* radius */ );
-	Sphere light_sphere(1.2f /* radius */);
+	Sphere light_sphere(0.7f /* radius */);
+	Sphere sphere1geom(1.05f /* radius */ );
+	Sphere sphere2geom(1.1f /* radius */);
 
 	Plane wall_up_geom(Vec(0, -1, 0));	// facing down
 	Plane wall_down_geom(Vec(0, 1, 0));		// facing up
@@ -78,9 +82,10 @@ void work()
 	GlassBSDF transparent_glass_bsdf(1.5f, 0.f);
 	DiffuseBSDF diffuse_bsdf;
 	MirrorBSDF mirror_bsdf;
-	SpecularBSDF specular_bsdf(50.f);
-	SchlickBSDF schlick_bsdf(0.95f);
+	SpecularBSDF specular_bsdf(200.f);
+	SchlickBSDF schlick_bsdf(0.08f);
 	PhongBSDF phong_bsdf(50);
+	AshikhminShirleyBSDF ash_bsdf(1.0f, 1.0f, 10.f, 100.f);
 
 	//Object obj(new Sphere(), Color(), new GlassMaterial(), )
 
@@ -114,12 +119,14 @@ void work()
 	mirror.specular = 0.0f;
 	mirror.refractiveIndex = 1.21f;*/
 
+	// TODO MultiBSDF
+
 	Object wall_down(
 		/* position */ Point(0,-4,0),
 		/* color */ Vec(0.5,0.0,0.5),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_down_geom,
-		/* bsdf */ &schlick_bsdf);
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_down);
 
 	Object wall_up(
@@ -127,7 +134,7 @@ void work()
 		/* color */ Vec(0.5,0.2,0.0),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_up_geom,
-		/* bsdf */ &schlick_bsdf);
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_up);
 
 	Object wall_left(
@@ -135,7 +142,7 @@ void work()
 		/* color */ Vec(1.0,0.8,0.0),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_left_geom,
-		/* bsdf */ &schlick_bsdf);
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_left);
 
 	Object wall_right(
@@ -143,7 +150,7 @@ void work()
 		/* color */ Vec(0.0,0.5,0.2),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_right_geom,
-		/* bsdf */ &mirror_bsdf);
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_right);
 
 	Object wall_back(
@@ -151,16 +158,33 @@ void work()
 		/* color */ Vec(1.0,1.0,1.0),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &wall_plane_geom,
-		/* bsdf */ &schlick_bsdf);
+		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_back);
 
-	Object light_source(
+	Object light1(
+		/* position */ Point(0,2.5f,1),
+		/* color */ Vec(1.0,0.2,1.0),
+		/* emittance */ Vec(10.0,10.0,5.0),
+		/* geometry */ &light_sphere,
+		/* bsdf */ &diffuse_bsdf);
+	rs.scene.push_back(&light1);
+
+	Object light2(
+		/* position */ Point(-3,2.5f,1),
+		/* color */ Vec(1.0,0.2,1.0),
+		/* emittance */ Vec(10.0,10.0,5.0),
+		/* geometry */ &light_sphere,
+		/* bsdf */ &diffuse_bsdf);
+	rs.scene.push_back(&light2);
+
+	
+	Object light3(
 		/* position */ Point(3,2.5f,1),
 		/* color */ Vec(1.0,0.2,1.0),
-		/* emittance */ Vec(10.0,10.0,10.0),
+		/* emittance */ Vec(10.0,10.0,5.0),
 		/* geometry */ &light_sphere,
-		/* bsdf */ &schlick_bsdf);
-	rs.scene.push_back(&light_source);
+		/* bsdf */ &diffuse_bsdf);
+	rs.scene.push_back(&light3);
 
 	/* triangle test */
 	Object triangle(
@@ -180,23 +204,31 @@ void work()
 	//rs.scene.push_back(&small_sphere);
 
 	Object glass_sphere(
-		/* position */ Point(0,0,0),
+		/* position */ Point(0,-1.5f,0),
 		/* color */ Vec(1,1,1),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
 		/* bsdf */ &glass_bsdf);
 	//rs.scene.push_back(&glass_sphere);
 
-	Object mirror_sphere(
-		/* position */ Point(-3,0,0),
+	Object sphere1(
+		/* position */ Point(-3,-1.5f,0),
+		/* color */ Vec(0,1,0),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &sphere1geom,
+		/* bsdf */ &schlick_bsdf);
+	rs.scene.push_back(&sphere1);
+
+	Object sphere2(
+		/* position */ Point(-3,-1.5f,0),
 		/* color */ Vec(1,1,1),
 		/* emittance */ Vec(0.0,0.0,0.0),
-		/* geometry */ &sphere,
-		/* bsdf */ &specular_bsdf);
-	rs.scene.push_back(&mirror_sphere);
+		/* geometry */ &sphere2geom,
+		/* bsdf */ &glass_bsdf);
+	//rs.scene.push_back(&sphere2);
 
 	Object glass2_sphere(
-		/* position */ Point(3,0,0),
+		/* position */ Point(3,-1.5f,0),
 		/* color */ Vec(1,1,1),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
@@ -289,8 +321,12 @@ int main(int argc, char ** argv)
 
 	worker.join();
 
-	std::clog << "\nSaving image to output.png...";
-	texture.copyToImage().saveToFile("output.png");
+	std::stringstream file_name("output_");
+	file_name << "output_" << time(NULL) << ".png";
+	std::string str = file_name.str();
+
+	std::clog << "\nSaving image to " << str.c_str() << "...";
+	texture.copyToImage().saveToFile(str.c_str());
 	std::clog << "Done\n";
 
 	delete[] rs.buffer;

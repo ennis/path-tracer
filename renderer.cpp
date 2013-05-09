@@ -57,74 +57,74 @@ static Vec sample(RenderState& rs,
 	bool seeLight = true;
 	float sampleX = frand(0,1);
 	float sampleY = frand(0,1);
+	bool specular;
 
 	BSDF const* bsdf = obj->getBSDF();
 	Vec const& color = obj->getColor();
+	value = bsdf->sample(in, normal, out, specular, sampleX, sampleY);
 	
-	if (bsdf->isSpecular()) {
-		// perfect specular reflection, no contribution from other light sources
-		value = bsdf->sample(in, normal, out, sampleX, sampleY);
+	if (specular) {
 		return color*value*trace(rs, Ray(hit,out), depth+1, seeLight);
 		// Note: value should be (1,1,1) 
 	} else {
 		//if (depth = 0) {
 		// TODO other samplers
-		// sample at intersection point
-		value = bsdf->sample(in, normal, out, sampleX, sampleY);
 		seeLight = false;
 		
 		// calculate direct lighting
-		for (std::vector<Object*>::iterator obj = rs.scene.begin(); obj != rs.scene.end(); ++obj)
-		{
-			if ((*obj)->getEmittance() == Vec(0,0,0)) {
-				//std::cout << "OBJ\n";
-				continue;
-			}
-			//std::cout << "LIGHT: ";
-			// calculate solid angle
-			// Position of sphere (assume it's a spherical light source)
-			Vec L = (*obj)->getPosition();
-			Vec D = (L - hit);
-			float d2 = dot(D,D);
-			// Radius?
-			float r = static_cast<Sphere const*>((*obj)->getGeometry())->radius;
-			// apparent angle
-			float cos_max = sqrtf(d2 / (r*r + d2));
-			// solid angle
-			float omega = 2*M_PI*(1-cos_max);
-			// generate a ray 
-			Vec T,S;
-			genOrtho(D.normalized(), T, S);
+		if (rs.explicitLightSampling) {
+			for (std::vector<Object*>::iterator obj = rs.scene.begin(); obj != rs.scene.end(); ++obj)
+			{
+				if ((*obj)->getEmittance() == Vec(0,0,0)) {
+					//std::cout << "OBJ\n";
+					continue;
+				}
+				//std::cout << "LIGHT: ";
+				// calculate solid angle
+				// Position of sphere (assume it's a spherical light source)
+				Vec L = (*obj)->getPosition();
+				Vec D = (L - hit);
+				float d2 = dot(D,D);
+				// Radius?
+				float r = static_cast<Sphere const*>((*obj)->getGeometry())->radius;
+				// apparent angle
+				float cos_max = sqrtf(d2 / (r*r + d2));
+				// solid angle
+				float omega = 2*M_PI*(1-cos_max);
+				// generate a ray 
+				Vec T,S;
+				genOrtho(D.normalized(), T, S);
 
-			float s1 = frand(0,1);	// TODO samplers
-			float s2 = frand(0,1);
+				float s1 = frand(0,1);	// TODO samplers
+				float s2 = frand(0,1);
 
-			float phi = 2*M_PI*s1;
-			float v = 1.f - s2 * (1 - cos_max);
-			float w = sqrt(1 - v*v);
-			Vec Rd = cos(phi) * w * T + sin(phi) * w * S + v * D.normalized();
-			Rd = Rd.normalized();
+				float phi = 2*M_PI*s1;
+				float v = 1.f - s2 * (1 - cos_max);
+				float w = sqrt(1 - v*v);
+				Vec Rd = cos(phi) * w * T + sin(phi) * w * S + v * D.normalized();
+				Rd = Rd.normalized();
 
-			if (dot(Rd, normal) < EPSILON) {
-				// miss
-				//std::cout << "MISS\n";
-			}
-			else {
-				// shoot shadow ray
-				float unused_dist;
-				Vec unused_normal;
-				Object *obj2 = findIntersection(rs, Ray(hit, Rd), unused_dist, unused_normal);
-				if (obj2 == *obj) {
-					e = e + (*obj)->getEmittance() * (bsdf->eval(in, Rd, normal) * omega * (1.f / M_PI) * dot(normal, Rd));
-					//std::cout << "OK\n";
+				if (dot(Rd, normal) < EPSILON) {
+					// miss
+					//std::cout << "MISS\n";
+				}
+				else {
+					// shoot shadow ray
+					float unused_dist;
+					Vec unused_normal;
+					Object *obj2 = findIntersection(rs, Ray(hit, Rd), unused_dist, unused_normal);
+					if (obj2 == *obj) {
+						e = e + (*obj)->getEmittance() * (bsdf->eval(in, Rd, normal) * omega * (1.f / M_PI) * dot(normal, Rd));
+						//std::cout << "OK\n";
  
-				} else {
-					//std::cout << "SHADOW\n";
+					} else {
+						//std::cout << "SHADOW\n";
+					}
 				}
 			}
 		}
 		
-		if (rs.directLighting) {
+		if (rs.directLightingOnly) {
 			// compute only direct lighting
 			return color*e;
 		}

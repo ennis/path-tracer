@@ -10,8 +10,9 @@ public:
 	DiffuseBSDF()
 	{}
 
-	Vec sample(Vec const& in, Vec const& N, Vec& out, float sampleX, float sampleY) const
+	Vec sample(Vec const& in, Vec const& N, Vec& out, bool& specular, float sampleX, float sampleY) const
 	{
+		specular = false;
 		out = sampleCosineWeightedRay(N, sampleX, sampleY);
 		//std::clog << dot(N,in) <<'\n';
 		return Vec(1.f, 1.f, 1.f);
@@ -20,10 +21,6 @@ public:
 	Vec eval(Vec const& in, Vec const& out, Vec const& N) const
 	{
 		return Vec(1.f, 1.f, 1.f);
-	}
-
-	bool isSpecular() const {
-		return false;
 	}
 
 private:

@@ -8,8 +8,9 @@ public:
 	GlassBSDF(float refractionIndex, float reflection = 0.5f) : m_refractionIndex(refractionIndex), m_reflection(reflection)
 	{}
 
-	Vec sample(Vec const& in, Vec const& N, Vec& out, float sampleX, float sampleY) const
+	Vec sample(Vec const& in, Vec const& N, Vec& out, bool& specular, float sampleX, float sampleY) const
 	{
+		specular = true;
 		// generate ray in hemisphere
 		if (dot(in,N) > 0) {
 			if (sampleX > m_reflection) {
@@ -28,10 +29,6 @@ public:
 	Vec eval(Vec const& in, Vec const& out, Vec const& N) const
 	{
 		return Vec(1.f, 1.f, 1.f);
-	}
-
-	bool isSpecular() const {
-		return true;
 	}
 
 private:
