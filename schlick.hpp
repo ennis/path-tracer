@@ -12,12 +12,12 @@ public:
 
 	Vec sample(Vec const& in, Vec const& N, Vec& out, bool& specular, float sampleX, float sampleY) const
 	{
+		out = reflectedRay(N, in);
 		Vec H = halfway(in, out);
 		float c = 1 - dot(H, out);
 		float R = m_r0 + (1-m_r0)*c*c*c*c*c;
 
-		if (frand(0,1) < m_r0) {
-			out = reflectedRay(N, in);
+		if (frand(0,1) < R) {
 			specular = true;
 			return Vec(1.f,1.f,1.f);
 		}

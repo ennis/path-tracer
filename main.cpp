@@ -54,7 +54,7 @@ void work()
 	rs.pixelWidth = XRES;
 	rs.pixelHeight = YRES;
 	// spp
-	rs.samplesPerPixel = 50;
+	rs.samplesPerPixel = 350;
 	rs.maxDepth = 5;
 	rs.supersampling = true;
 	rs.cosineWeightedSampling = false;
@@ -62,8 +62,8 @@ void work()
 	rs.explicitLightSampling = true;
 	
 	// create sphere geom
-	Sphere sphere(1.1f /* radius */ );
-	Sphere light_sphere(0.7f /* radius */);
+	Sphere sphere(1.0f /* radius */ );
+	Sphere light_sphere(1.0f /* radius */);
 	Sphere sphere1geom(1.05f /* radius */ );
 	Sphere sphere2geom(1.1f /* radius */);
 
@@ -78,11 +78,11 @@ void work()
 							Point(1.0f, 1.0f, 1.5f),
 							Point(4.0f, 1.0f, 1.5f));
 
-	GlassBSDF glass_bsdf(1.5f);
+	GlassBSDF glass_bsdf(1.5f,0.2f);
 	GlassBSDF transparent_glass_bsdf(1.5f, 0.f);
 	DiffuseBSDF diffuse_bsdf;
 	MirrorBSDF mirror_bsdf;
-	SpecularBSDF specular_bsdf(200.f);
+	SpecularBSDF specular_bsdf(2.f);
 	SchlickBSDF schlick_bsdf(0.08f);
 	PhongBSDF phong_bsdf(50);
 	AshikhminShirleyBSDF ash_bsdf(1.0f, 1.0f, 10.f, 100.f);
@@ -162,29 +162,12 @@ void work()
 	rs.scene.push_back(&wall_back);
 
 	Object light1(
-		/* position */ Point(0,2.5f,1),
-		/* color */ Vec(1.0,0.2,1.0),
+		/* position */ Point(0,2.5f,-2.f),
+		/* color */ Vec(1.0f,1.0f,0.7f),
 		/* emittance */ Vec(10.0,10.0,5.0),
 		/* geometry */ &light_sphere,
 		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&light1);
-
-	Object light2(
-		/* position */ Point(-3,2.5f,1),
-		/* color */ Vec(1.0,0.2,1.0),
-		/* emittance */ Vec(10.0,10.0,5.0),
-		/* geometry */ &light_sphere,
-		/* bsdf */ &diffuse_bsdf);
-	rs.scene.push_back(&light2);
-
-	
-	Object light3(
-		/* position */ Point(3,2.5f,1),
-		/* color */ Vec(1.0,0.2,1.0),
-		/* emittance */ Vec(10.0,10.0,5.0),
-		/* geometry */ &light_sphere,
-		/* bsdf */ &diffuse_bsdf);
-	rs.scene.push_back(&light3);
 
 	/* triangle test */
 	Object triangle(
@@ -195,45 +178,54 @@ void work()
 		/* bsdf */ &mirror_bsdf);
 	//rs.scene.push_back(&triangle);
 
-	Object small_sphere(
-		/* position */ Point(3.f,2.5f,1.f),
-		/* color */ Vec(1.0,1.0,1.0),
-		/* emittance */ Vec(0.0,0.0,0.0),
-		/* geometry */ &sphere,
-		/* bsdf */ &phong_bsdf);
-	//rs.scene.push_back(&small_sphere);
-
-	Object glass_sphere(
-		/* position */ Point(0,-1.5f,0),
-		/* color */ Vec(1,1,1),
-		/* emittance */ Vec(0.0,0.0,0.0),
-		/* geometry */ &sphere,
-		/* bsdf */ &glass_bsdf);
-	//rs.scene.push_back(&glass_sphere);
-
 	Object sphere1(
-		/* position */ Point(-3,-1.5f,0),
-		/* color */ Vec(0,1,0),
-		/* emittance */ Vec(0.0,0.0,0.0),
-		/* geometry */ &sphere1geom,
-		/* bsdf */ &schlick_bsdf);
+		/* position */ Point(3.6f,-1.5f,0),
+		/* color */ Vec(1.0f,1.0f,1.0f),
+		/* emittance */ Vec(0.0f,0.0f,0.0f),
+		/* geometry */ &sphere,
+		/* bsdf */ &ash_bsdf);
 	rs.scene.push_back(&sphere1);
 
 	Object sphere2(
-		/* position */ Point(-3,-1.5f,0),
-		/* color */ Vec(1,1,1),
-		/* emittance */ Vec(0.0,0.0,0.0),
-		/* geometry */ &sphere2geom,
+		/* position */ Point(1.2f,-1.5f,0),
+		/* color */ Vec(1.f,1.f,1.f),
+		/* emittance */ Vec(0.0f,0.0f,0.0f),
+		/* geometry */ &sphere,
 		/* bsdf */ &glass_bsdf);
-	//rs.scene.push_back(&sphere2);
+	rs.scene.push_back(&sphere2);
 
-	Object glass2_sphere(
-		/* position */ Point(3,-1.5f,0),
-		/* color */ Vec(1,1,1),
-		/* emittance */ Vec(0.0,0.0,0.0),
+	Object sphere3(
+		/* position */ Point(-1.2f,-1.5f,0),
+		/* color */ Vec(1.f,1.f,1.f),
+		/* emittance */ Vec(0.0f,0.0f,0.0f),
+		/* geometry */ &sphere,
+		/* bsdf */ &schlick_bsdf);
+	rs.scene.push_back(&sphere3);
+
+	Object sphere4(
+		/* position */ Point(-3.6f,-1.5f,0),
+		/* color */ Vec(1.f,1.f,1.f),
+		/* emittance */ Vec(0.0f,0.0f,0.0f),
 		/* geometry */ &sphere,
 		/* bsdf */ &transparent_glass_bsdf);
-	//rs.scene.push_back(&glass2_sphere);
+	rs.scene.push_back(&sphere4);
+
+	
+	Object sphere5(
+		/* position */ Point(0,1.f,2.f),
+		/* color */ Vec(1.f,1.f,1.f),
+		/* emittance */  Vec(0.0f,0.0f,0.0f),
+		/* geometry */ &sphere,
+		/* bsdf */ &mirror_bsdf);
+	rs.scene.push_back(&sphere5);
+
+	Object sphere6(
+		/* position */ Point(2.5,1.f,2.f),
+		/* color */ Vec(1.f,1.f,1.f),
+		/* emittance */  Vec(0.0f,0.0f,0.0f),
+		/* geometry */ &sphere,
+		/* bsdf */ &specular_bsdf);
+	rs.scene.push_back(&sphere6);
 
 	render(rs);
 
