@@ -29,7 +29,7 @@ public:
 		return Vec(1.f, 1.f, 1.f)*std::max(0.f,dot(out,R));
 	}
 
-	bool needSamples() const {
+	bool isSpecular() const {
 		return true;
 	}
 

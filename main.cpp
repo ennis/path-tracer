@@ -53,7 +53,7 @@ void work()
 	rs.pixelWidth = XRES;
 	rs.pixelHeight = YRES;
 	// spp
-	rs.samplesPerPixel = 5;
+	rs.samplesPerPixel = 500;
 	rs.maxDepth = 5;
 	rs.supersampling = true;
 	rs.cosineWeightedSampling = false;
@@ -75,6 +75,7 @@ void work()
 							Point(4.0f, 1.0f, 1.5f));
 
 	GlassBSDF glass_bsdf(1.5f);
+	GlassBSDF transparent_glass_bsdf(1.5f, 0.f);
 	DiffuseBSDF diffuse_bsdf;
 	MirrorBSDF mirror_bsdf;
 	SpecularBSDF specular_bsdf(5.f);
@@ -154,9 +155,9 @@ void work()
 	rs.scene.push_back(&wall_back);
 
 	Object light_source(
-		/* position */ Point(0,0,-1),
+		/* position */ Point(3,2.5f,1),
 		/* color */ Vec(1.0,0.2,1.0),
-		/* emittance */ Vec(7.0,7.0,7.0),
+		/* emittance */ Vec(10.0,10.0,10.0),
 		/* geometry */ &light_sphere,
 		/* bsdf */ &schlick_bsdf);
 	rs.scene.push_back(&light_source);
@@ -176,15 +177,31 @@ void work()
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
 		/* bsdf */ &phong_bsdf);
-	rs.scene.push_back(&small_sphere);
+	//rs.scene.push_back(&small_sphere);
 
 	Object glass_sphere(
-		/* position */ Point(-3.5,-2,1),
+		/* position */ Point(0,0,0),
 		/* color */ Vec(1,1,1),
 		/* emittance */ Vec(0.0,0.0,0.0),
 		/* geometry */ &sphere,
 		/* bsdf */ &glass_bsdf);
 	rs.scene.push_back(&glass_sphere);
+
+	Object mirror_sphere(
+		/* position */ Point(-3,0,0),
+		/* color */ Vec(1,1,1),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &sphere,
+		/* bsdf */ &mirror_bsdf);
+	rs.scene.push_back(&mirror_sphere);
+
+	Object glass2_sphere(
+		/* position */ Point(3,0,0),
+		/* color */ Vec(1,1,1),
+		/* emittance */ Vec(0.0,0.0,0.0),
+		/* geometry */ &sphere,
+		/* bsdf */ &transparent_glass_bsdf);
+	rs.scene.push_back(&glass2_sphere);
 
 	render(rs);
 

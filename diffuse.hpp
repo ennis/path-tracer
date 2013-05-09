@@ -22,8 +22,8 @@ public:
 		return Vec(1.f, 1.f, 1.f);
 	}
 
-	bool needSamples() const {
-		return true;
+	bool isSpecular() const {
+		return false;
 	}
 
 private:

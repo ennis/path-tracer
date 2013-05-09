@@ -55,19 +55,20 @@ static Vec sample(RenderState& rs,
 	Vec out, value, e;
 	const float invsppf = 1.f / static_cast<float>(rs.samplesPerPixel);
 	bool seeLight = true;
+	float sampleX = frand(0,1);
+	float sampleY = frand(0,1);
 
 	BSDF const* bsdf = obj->getBSDF();
 	Vec const& color = obj->getColor();
 	
-	if (!bsdf->needSamples()) {
-		// we can compute the exact value of the BSDF
-		value = bsdf->sample(in, normal, out, 0.f, 0.f);
+	if (bsdf->isSpecular()) {
+		// perfect specular reflection, no contribution from other light sources
+		value = bsdf->sample(in, normal, out, sampleX, sampleY);
+		return color*value*trace(rs, Ray(hit,out), depth+1, seeLight);
 		// Note: value should be (1,1,1) 
 	} else {
 		//if (depth = 0) {
 		// TODO other samplers
-		float sampleX = frand(0,1);
-		float sampleY = frand(0,1);
 		// sample at intersection point
 		value = bsdf->sample(in, normal, out, sampleX, sampleY);
 		seeLight = false;
@@ -123,14 +124,14 @@ static Vec sample(RenderState& rs,
 				}
 			}
 		}
-	}
-
-	// get incoming radiance at this point
-	if (rs.directLighting) {
-		return color*e;
-	}
-	else {
-		return color*(e + value*trace(rs, Ray(hit,out), depth+1, seeLight));
+		
+		if (rs.directLighting) {
+			// compute only direct lighting
+			return color*e;
+		}
+		else {
+			return color*(e + value*trace(rs, Ray(hit,out), depth+1, seeLight));
+		}
 	}
 }
 

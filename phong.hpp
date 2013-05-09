@@ -4,6 +4,7 @@
 #include <iostream>
 #include <algorithm> 
 #include <cmath>
+#include "util.hpp"
 
 class PhongBSDF : public BSDF
 {
@@ -13,8 +14,13 @@ public:
 
 	Vec sample(Vec const& in, Vec const& N, Vec& out, float sampleX, float sampleY) const
 	{
-		out = sampleCosineWeightedRay(N, sampleX, sampleY);
-		return eval(in, out, N);
+		if (frand(0,1) < 0.5f) {
+			out = sampleCosineWeightedRay(N, sampleX, sampleY);
+			return eval(in, out, N);
+		} else {
+			out = reflectedRay(N, in);
+			return Vec(1,1,1);
+		}		
 	}
 
 	Vec eval(Vec const& in, Vec const& out, Vec const& N) const
@@ -24,8 +30,8 @@ public:
 		return Vec(s,s,s);
 	}
 
-	bool needSamples() const {
-		return true;
+	bool isSpecular() const {
+		return false;
 	}
 
 private:

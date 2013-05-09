@@ -23,8 +23,8 @@ public:
 		  return Vec(R,R,R);
 	}
 
-	bool needSamples() const {
-		return true;
+	bool isSpecular() const {
+		return false;
 	}
 
 private:
