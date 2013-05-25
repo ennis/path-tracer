@@ -69,10 +69,10 @@ static Vec sample(RenderState& rs,
 	} else {
 		//if (depth = 0) {
 		// TODO other samplers
-		seeLight = false;
 		
 		// calculate direct lighting
 		if (rs.explicitLightSampling) {
+			seeLight = false;
 			for (std::vector<Object*>::iterator obj = rs.scene.begin(); obj != rs.scene.end(); ++obj)
 			{
 				if ((*obj)->getEmittance() == Vec(0,0,0)) {
