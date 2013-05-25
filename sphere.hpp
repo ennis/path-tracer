@@ -22,6 +22,10 @@ public:
 		return MGetTranslation(m_w2o);
 	}
 
+	virtual float getRadius() const {
+		return m_radius;
+	}
+
 private:
 	AABB m_aabb;
 	float m_radius;

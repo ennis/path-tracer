@@ -75,6 +75,8 @@ struct Vec
 	}
 
 	__m128 xyzw;
+
+	static const Vec null;
 };
 
 struct Point : public Vec

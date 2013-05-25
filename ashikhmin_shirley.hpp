@@ -16,7 +16,7 @@ public:
 	{
 		out = sampleCosineWeightedRay(N, sampleX, sampleY);
 		specular = false;
-		return eval(in, out, N);
+		return eval(N, in, out, color);
 	}
 
 	Vec eval(Vec const& N, Vec const& in, Vec const& out, Vec const& color) const

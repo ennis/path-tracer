@@ -38,7 +38,7 @@ public:
 		return m_height;
 	}
 
-	Ray rayThroughCameraPixel(float px, float py, float pixelWidth, float pixelHeight) 
+	Ray rayThroughCameraPixel(float px, float py, float pixelWidth, float pixelHeight) const
 	{
 		Vec camdir((px / pixelWidth - 0.5f) * m_width, 
 				   (py / pixelHeight - 0.5f) * m_height,

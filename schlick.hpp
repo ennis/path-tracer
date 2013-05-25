@@ -28,7 +28,7 @@ public:
 		else {
 			out = sampleCosineWeightedRay(N, sampleX, sampleY);
 			specular = false;
-			return eval(in, out, N);
+			return eval(N, in, out, color);
 		}
 	}
 

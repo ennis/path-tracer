@@ -4,6 +4,7 @@
 struct Triangle : public Geometry
 {
 	Triangle(Point const& P1_, Point const& P2_, Point const& P3_) : 
+		Geometry(identityM, identityM),
 		P1(P1_),
 		P2(P2_),
 		P3(P3_)

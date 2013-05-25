@@ -14,15 +14,9 @@ public:
 
 	Vec sample(Vec const& N, Vec const& in, Vec const& color, float sampleX, float sampleY, Vec& out, bool& specular) const
 	{
-		//if (frand(0,1) < 0.5f) {
 		out = sampleCosineWeightedRay(N, sampleX, sampleY);
 		specular = false;
-		return eval(in, out, N);
-		//} else {
-		//	out = reflectedRay(N, in);
-		//	specular = true;
-		//	return Vec(1,1,1);
-		//}		
+		return eval(N, in, out, color);
 	}
 
 	Vec eval(Vec const& N, Vec const& in, Vec const& out, Vec const& color) const

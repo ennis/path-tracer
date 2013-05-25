@@ -10,23 +10,21 @@ static const unsigned int DEFAULT_MAX_DEPTH = 5;
 static const unsigned int DEFAULT_SPP = 10;
 
 
-struct RenderOptions
+struct RenderParameters
 {
 	// parameters
 	unsigned int samplesPerPixel;
 	unsigned int maxDepth;
 	unsigned int pixelWidth;
 	unsigned int pixelHeight;
-	uint32_t *buffer;
 
 	bool supersampling;
 	bool cosineWeightedSampling;
 	bool directLightingOnly;
 	bool explicitLightSampling;
-	
-	unsigned int numRenderedLines;
-	unsigned int numSamples;
 };
+
+uint32_t mapRGB(Vec const& c);
 
 class Film
 {
@@ -66,27 +64,31 @@ private:
 	unsigned int m_pixelWidth, m_pixelHeight;
 };
 
+bool findIntersection(std::vector<Primitive*> const& scene, Ray const& ray, Intersection *isect, Material const** mat);
+
 class Renderer
 {
 public:
-	Renderer(RenderOptions const& options);
+	Renderer(RenderParameters const& params) : m_params(params)
+	{}
 
-	void render(Camera const& camera, std::vector<Primitive*> const& scene);
-
-
+	void render(Camera const& camera, std::vector<Primitive const*> const& scene, Film& out_film);
 
 private:
 
 	// private methods
 
-	Vec evaluateDirectLighting(Intersection const& isect, Material const* mat);
+	Vec evaluateDirectLighting(Intersection const& isect, Vec const& in, Vec const& color, BSDF const* bsdf);
 	Vec samplePixel(float x, float y);
 	Vec trace(Ray const& ray, unsigned int depth, bool seeLight = true);
 
-	RenderOptions m_options;
+	RenderParameters m_params;
 	Camera const * m_camera;
 	Vec m_ambient;
-	std::vector<Primitive*> const * m_scene;
-	std::vector<Primitive*> const * m_lightSources;
+	std::vector<Primitive const*> const * m_scene;
+	std::vector<Primitive const*> const * m_lightSources;
+
+	unsigned int m_samples;
+	unsigned int m_lines;
 
 };

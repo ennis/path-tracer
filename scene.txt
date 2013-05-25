@@ -3,17 +3,13 @@ camera {
 	lookat <0.0 0.0 0.0> eye <0.0 0.0 0.0> up <0.0 0.0 1.0>
 }
 
-
 object obj {
-	sphere 
-	scale 2.0
-	pos <0.0 0.0 0.0>
+	sphere {
+		radius 1.0
+	}
 	rotate deg 90
 	color hsv <0.0 0.0 0.0>
 	material mat
 }
 
-
-Integration:
-	
-	
+renderer 
