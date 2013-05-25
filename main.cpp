@@ -54,11 +54,7 @@ void work()
 	rs.pixelWidth = XRES;
 	rs.pixelHeight = YRES;
 	// spp
-<<<<<<< Updated upstream
-	rs.samplesPerPixel = 20;
-=======
 	rs.samplesPerPixel = 40;
->>>>>>> Stashed changes
 	rs.maxDepth = 5;
 	rs.supersampling = true;
 	rs.cosineWeightedSampling = false;

@@ -144,7 +144,9 @@ Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight = true)
 		//
 		return color*value*trace(Ray(isect.P, out), depth+1, nextSeeLight);
 		// Note: value should be (1,1,1) 
+
 	} else {
+
 		//
 		// evaluate direct lighting
 		if (rs.explicitLightSampling) {
