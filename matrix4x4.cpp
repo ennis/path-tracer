@@ -4,12 +4,12 @@
 using namespace std;
 
 // taken from pbrt core/transform.cpp
-bool Matrix4x4::inverse(Matrix4x4 &result)
+bool MInverse(Matrix4x4 const& mat, Matrix4x4 &result)
 {
     int indxc[4], indxr[4];
     int ipiv[4] = { 0, 0, 0, 0 };
     float (&minv)[4][4] = result.d;
-    memcpy(minv, d, 4*4*sizeof(float));
+	memcpy(minv, mat.d, 4*4*sizeof(float));
     for (int i = 0; i < 4; i++) {
         int irow = -1, icol = -1;
         float big = 0.;
@@ -73,7 +73,13 @@ bool Matrix4x4::inverse(Matrix4x4 &result)
     return true;
 }
 
-Matrix4x4 Matrix4x4::lookAtLH(Point const& eye, Point const& lookat, Vec const& up)
+Matrix4x4 MMultiply(Matrix4x4 const& m1, Matrix4x4 const& m2);
+{
+	// TODO?
+	return Matrix4x4();
+}
+
+Matrix4x4 MLookAtLH(Point const& eye, Point const& lookat, Vec const& up)
 {
 	// camera space to world space
 	Vec Z = (lookat - eye).normalized();
@@ -86,7 +92,7 @@ Matrix4x4 Matrix4x4::lookAtLH(Point const& eye, Point const& lookat, Vec const& 
 					0, 0, 0, 1);
 }
 
-Matrix4x4 Matrix4x4::lookAtRH(Point const& eye, Point const& lookat, Vec const& up)
+Matrix4x4 MLookAtRH(Point const& eye, Point const& lookat, Vec const& up)
 {
     // camera space to world space
     Vec Z = (lookat - eye).normalized();
@@ -99,10 +105,21 @@ Matrix4x4 Matrix4x4::lookAtRH(Point const& eye, Point const& lookat, Vec const& 
                     0, 0, 0, 1);
 }
 
-Matrix4x4 Matrix4x4::translate(Vec const& vec)
+Matrix4x4 MTranslate(Vec const& vec)
 {
 	return Matrix4x4(1, 0, 0, vec.x(),
                      0, 1, 0, vec.y(), 
     				 0, 0, 1, vec.z(),
     				 0, 0, 0, 1);
+}
+
+Vec MApply(Matrix4x4 const& mat, Vec const& v) {
+	return Vec(mat.d[0][0]*v.x() + mat.d[0][1]*v.y() + mat.d[0][2]*v.z() + mat.d[0][3]*v.w(),
+			mat.d[1][0]*v.x() + mat.d[1][1]*v.y() + mat.d[1][2]*v.z() + mat.d[1][3]*v.w(),
+			mat.d[2][0]*v.x() + mat.d[2][1]*v.y() + mat.d[2][2]*v.z() + mat.d[2][3]*v.w(),
+			mat.d[3][0]*v.x() + mat.d[3][1]*v.y() + mat.d[3][2]*v.z() + mat.d[3][3]*v.w());
+}
+
+Vec MGetTranslation(Matrix4x4 const& mat) {
+	return Vec(mat.d[0][3], mat.d[1][3], mat.d[2][3]);
 }

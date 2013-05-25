@@ -10,7 +10,7 @@ public:
 	SpecularBSDF(float specularCoef) : specularCoef_(specularCoef)
 	{}
 
-	Vec sample(Vec const& in, Vec const& N, Vec& out, bool& specular, float sampleX, float sampleY) const
+	Vec sample(Vec const& N, Vec const& in, Vec const& color, float sampleX, float sampleY, Vec& out, bool& specular) const
 	{
 		// generate ray in hemisphere
 		bool bounce;
@@ -23,7 +23,7 @@ public:
 		return Vec(1.f, 1.f, 1.f);
 	}
 
-	Vec eval(Vec const& in, Vec const& out, Vec const& N) const
+	Vec eval(Vec const& N, Vec const& in, Vec const& out, Vec const& color) const
 	{
 		Vec R = reflectedRay(N, in);
 		

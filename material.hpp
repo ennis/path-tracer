@@ -2,51 +2,45 @@
 #define MATERIAL_HPP 
 #include "vec.hpp"
 #include "ray.hpp"
- 
-/* Material: color, reflection type (ray generation) */ 
+#include "bsdf.hpp"
+#include "texture.hpp"
 
-enum ReflectionType
+class Material
 {
-	R_REFLECTIVE,
-	R_REFRACTIVE,
-	R_DIFFUSE,
-	R_SPECULAR
+public:
+	Material(Texture const* texture, Vec const& emittance, bool lightSource, BSDF const* bsdf) : 
+		m_texture(texture),
+		m_emittance(emittance),
+		m_isLightSource(lightSource),
+		m_bsdf(bsdf)
+	{}
+
+	~Material()
+	{}
+
+	Texture const* getTexture() const {
+		return m_texture;
+	}
+
+	Vec const& getEmittance() const {
+		return m_emittance;
+	}
+
+	BSDF const* getBSDF() const {
+		return m_bsdf;
+	}
+
+	bool isLightSource() const {
+		return m_isLightSource;
+	}
+
+private:
+	Texture const* m_texture;
+	Vec m_emittance;
+	bool m_isLightSource;
+	// TODO multiple BSDFs
+	BSDF const *m_bsdf;
 };
 
-enum BRDFType
-{
-	DUMMY,
-	DIFFUSE_STD,
-	DIFFUSE_SCHLICK,
-	GAUSSIAN,
-	SINC,
-};
-
-struct Material
-{
-	int reflectionType; 
-	float specular;
-	float refractiveIndex;
-
-	float reflectionP;
-	float refractionP;
-	float diffuseP;
-
-	BRDFType brdfType;
-	// BRDF parameters
-	union {
-		float sincCoef;
-		float R0;
-	} brdfData;
-};
-
-Vec evalBRDF(Material const& mat, Vec const& in, Vec const& out, Vec const& normal);
-
-// for diffuse materials
-Vec stdBrdf(Material const& mat, Vec const& in, Vec const& out, Vec const& normal);
-Vec schlickBrdf(Material const& mat, Vec const& in, Vec const& out, Vec const& normal);
-Vec dummyBrdf(Material const& mat, Vec const& in, Vec const& out, Vec const& normal);
-Vec gaussianBrdf(Material const& mat, Vec const& in, Vec const& out, Vec const& normal);
-Vec sincBrdf(Material const& mat, Vec const& in, Vec const& out, Vec const& normal);
 
 #endif

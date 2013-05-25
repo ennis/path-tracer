@@ -12,12 +12,12 @@ public:
 	PhongBSDF(float phongCoef) : phongCoef_(phongCoef)
 	{}
 
-	Vec sample(Vec const& in, Vec const& N, Vec& out, bool& specular, float sampleX, float sampleY) const
+	Vec sample(Vec const& N, Vec const& in, Vec const& color, float sampleX, float sampleY, Vec& out, bool& specular) const
 	{
 		//if (frand(0,1) < 0.5f) {
-			out = sampleCosineWeightedRay(N, sampleX, sampleY);
-			specular = false;
-			return eval(in, out, N);
+		out = sampleCosineWeightedRay(N, sampleX, sampleY);
+		specular = false;
+		return eval(in, out, N);
 		//} else {
 		//	out = reflectedRay(N, in);
 		//	specular = true;
@@ -25,7 +25,7 @@ public:
 		//}		
 	}
 
-	Vec eval(Vec const& in, Vec const& out, Vec const& N) const
+	Vec eval(Vec const& N, Vec const& in, Vec const& out, Vec const& color) const
 	{
 		Vec H = halfway(in, out);
 		float s = powf(dot(N,H), phongCoef_);

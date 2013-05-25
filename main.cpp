@@ -27,8 +27,8 @@
 
 using namespace std;
 
-static const unsigned int XRES = 800;
-static const unsigned int YRES = 600;
+static const unsigned int XRES = 300;
+static const unsigned int YRES = 300;
 static const float ASPECT_RATIO = static_cast<float>(XRES)/static_cast<float>(YRES);
 
 sf::Texture texture;
@@ -43,18 +43,22 @@ T clamp(T v, T min, T max)
 void work()
 {
 	// setup camera
-	rs.camera.eye = Point(0, 0, -10.0f);
-	rs.camera.lookAt = Point(0.f, 0.f, 0.f);
+	rs.camera.eye = Point(0, -1.5, -3.0f);
+	rs.camera.lookAt = Point(0.f, -3.f, 0.f);
 	rs.camera.width = ASPECT_RATIO;
 	rs.camera.height = 1.f;
 	rs.camera.up = Vec(0.f, 1.f, 0.f);
 	rs.camera.screenDist = 1.f;
-	rs.camera.viewM = Matrix4x4::lookAtRH(rs.camera.eye, rs.camera.lookAt, rs.camera.up);
+	rs.camera.viewM = MLookAtRH(rs.camera.eye, rs.camera.lookAt, rs.camera.up);
 	// resolution
 	rs.pixelWidth = XRES;
 	rs.pixelHeight = YRES;
 	// spp
+<<<<<<< Updated upstream
 	rs.samplesPerPixel = 20;
+=======
+	rs.samplesPerPixel = 40;
+>>>>>>> Stashed changes
 	rs.maxDepth = 5;
 	rs.supersampling = true;
 	rs.cosineWeightedSampling = false;
@@ -74,18 +78,39 @@ void work()
 	Plane wall_left_geom(Vec(1, 0, 0));
 	Plane wall_right_geom(Vec(-1, 0, 0));
 
-	Triangle triangle_geom(Point(4.0f, 3.5f, 1.f),
+	Triangle triangle_geom(Point(-4.f, -2.f, -2.f),
 							Point(1.0f, 1.0f, 1.5f),
 							Point(4.0f, 1.0f, 1.5f));
+	/*Triangle t2(Point(4.0f, 3.5f, 1.f),
+							Point(1.0f, 1.0f, 1.5f),
+							Point(4.0f, 1.0f, 1.5f));
+	Triangle t3(Point(4.0f, 3.5f, 1.f),
+							Point(1.0f, 1.0f, 1.5f),
+							Point(4.0f, 1.0f, 1.5f));
+	Triangle t4(Point(4.0f, 3.5f, 1.f),
+							Point(1.0f, 1.0f, 1.5f),
+							Point(4.0f, 1.0f, 1.5f));
+	Triangle t5(Point(4.0f, 3.5f, 1.f),
+							Point(1.0f, 1.0f, 1.5f),
+							Point(4.0f, 1.0f, 1.5f));
+	Triangle t6(Point(4.0f, 3.5f, 1.f),
+							Point(1.0f, 1.0f, 1.5f),
+							Point(4.0f, 1.0f, 1.5f));
+	Triangle t7(Point(4.0f, 3.5f, 1.f),
+							Point(1.0f, 1.0f, 1.5f),
+							Point(4.0f, 1.0f, 1.5f));
+	Triangle t8(Point(4.0f, 3.5f, 1.f),
+							Point(1.0f, 1.0f, 1.5f),
+							Point(4.0f, 1.0f, 1.5f));*/
 
-	GlassBSDF glass_bsdf(1.5f,0.2f);
-	GlassBSDF transparent_glass_bsdf(1.5f, 0.f);
+	GlassBSDF glass_bsdf(1.2f);
+	GlassBSDF transparent_glass_bsdf(1.2f);
 	DiffuseBSDF diffuse_bsdf;
 	MirrorBSDF mirror_bsdf;
-	SpecularBSDF specular_bsdf(2.f);
+	SpecularBSDF specular_bsdf(1000.f);
 	SchlickBSDF schlick_bsdf(0.08f);
-	PhongBSDF phong_bsdf(50);
-	AshikhminShirleyBSDF ash_bsdf(1.0f, 1.0f, 10.f, 100.f);
+	PhongBSDF phong_bsdf(25);
+	AshikhminShirleyBSDF ash_bsdf(0.0f, 1.0f, 10.f, 10000.f);
 
 	//Object obj(new Sphere(), Color(), new GlassMaterial(), )
 
@@ -123,16 +148,16 @@ void work()
 
 	Object wall_down(
 		/* position */ Point(0,-4,0),
-		/* color */ Vec(0.5,0.0,0.5),
-		/* emittance */ Vec(0.0,0.0,0.0),
+		/* color */ Vec(0.7f,1.0f,0.7f),
+		/* emittance */ Vec(0.0f,0.0f,0.0f),
 		/* geometry */ &wall_down_geom,
 		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_down);
 
 	Object wall_up(
 		/* position */ Point(0,4,0),
-		/* color */ Vec(0.5,0.2,0.0),
-		/* emittance */ Vec(0.0,0.0,0.0),
+		/* color */ Vec(0.5f,0.2f,0.0f),
+		/* emittance */ Vec(0.0f,0.0f,0.0f),
 		/* geometry */ &wall_up_geom,
 		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_up);
@@ -144,6 +169,8 @@ void work()
 		/* geometry */ &wall_left_geom,
 		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&wall_left);
+
+	
 
 	Object wall_right(
 		/* position */ Point(6,0,0),
@@ -162,9 +189,9 @@ void work()
 	rs.scene.push_back(&wall_back);
 
 	Object light1(
-		/* position */ Point(0,2.5f,-2.f),
+		/* position */ Point(0,0.5f,-2.f),
 		/* color */ Vec(1.0f,1.0f,0.7f),
-		/* emittance */ Vec(10.0,10.0,5.0),
+		/* emittance */ Vec(10.0,10.0,7.0),
 		/* geometry */ &light_sphere,
 		/* bsdf */ &diffuse_bsdf);
 	rs.scene.push_back(&light1);
@@ -179,11 +206,11 @@ void work()
 	//rs.scene.push_back(&triangle);
 
 	Object sphere1(
-		/* position */ Point(3.6f,-1.5f,0),
+		/* position */ Point(0.f,-2.5f,0.f),
 		/* color */ Vec(1.0f,1.0f,1.0f),
 		/* emittance */ Vec(0.0f,0.0f,0.0f),
 		/* geometry */ &sphere,
-		/* bsdf */ &ash_bsdf);
+		/* bsdf */ &schlick_bsdf);
 	rs.scene.push_back(&sphere1);
 
 	Object sphere2(
@@ -192,7 +219,7 @@ void work()
 		/* emittance */ Vec(0.0f,0.0f,0.0f),
 		/* geometry */ &sphere,
 		/* bsdf */ &glass_bsdf);
-	rs.scene.push_back(&sphere2);
+	//rs.scene.push_back(&sphere2);
 
 	Object sphere3(
 		/* position */ Point(-1.2f,-1.5f,0),
@@ -200,7 +227,7 @@ void work()
 		/* emittance */ Vec(0.0f,0.0f,0.0f),
 		/* geometry */ &sphere,
 		/* bsdf */ &schlick_bsdf);
-	rs.scene.push_back(&sphere3);
+	//rs.scene.push_back(&sphere3);
 
 	Object sphere4(
 		/* position */ Point(-3.6f,-1.5f,0),
@@ -208,7 +235,7 @@ void work()
 		/* emittance */ Vec(0.0f,0.0f,0.0f),
 		/* geometry */ &sphere,
 		/* bsdf */ &transparent_glass_bsdf);
-	rs.scene.push_back(&sphere4);
+	//rs.scene.push_back(&sphere4);
 
 	
 	Object sphere5(
@@ -217,7 +244,7 @@ void work()
 		/* emittance */  Vec(0.0f,0.0f,0.0f),
 		/* geometry */ &sphere,
 		/* bsdf */ &mirror_bsdf);
-	rs.scene.push_back(&sphere5);
+	//rs.scene.push_back(&sphere5);
 
 	Object sphere6(
 		/* position */ Point(2.5,1.f,2.f),
@@ -225,7 +252,7 @@ void work()
 		/* emittance */  Vec(0.0f,0.0f,0.0f),
 		/* geometry */ &sphere,
 		/* bsdf */ &specular_bsdf);
-	rs.scene.push_back(&sphere6);
+	//rs.scene.push_back(&sphere6);
 
 	render(rs);
 

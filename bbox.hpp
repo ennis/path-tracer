@@ -4,7 +4,7 @@
 #include "matrix4x4.hpp"
 #include "geometry.hpp"
 
-struct AABB : public Geometry
+struct AABB 
 {
 	AABB()
 	{
@@ -21,11 +21,6 @@ struct AABB : public Geometry
 		sz1 = std::max(lowerleft.z(), upperright.z());
 	}
 	
-	// In world space
-	virtual bool intersectPred(Ray const& r, Point const& pos) const = 0;
-	// In world space
-	virtual bool intersect(Ray const& r, Point const& pos, float& dist, Vec& normal) const = 0;
-
 	float sx0;
 	float sx1;
 	float sy0;
@@ -35,4 +30,5 @@ struct AABB : public Geometry
 };
 
 bool rayAABBIntersect(Ray const& ray, AABB const& aabb, float& near, float& far);
-//AABB transformAABB(Transform const&
+
+AABB transformAABB(Matrix4x4 const& m, AABB const& aabb);

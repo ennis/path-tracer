@@ -4,20 +4,22 @@
 #include <cmath>
 #include <algorithm>
 
+// http://www.cs.utah.edu/~michael/brdfs/jgtbrdf.pdf
+
 class AshikhminShirleyBSDF : public BSDF
 {
 public:
 	AshikhminShirleyBSDF(float rd, float rs, float nu, float nv) : m_rd(rd), m_rs(rs), m_nu(nu), m_nv(nv)
 	{}
 
-	Vec sample(Vec const& in, Vec const& N, Vec& out, bool& specular, float sampleX, float sampleY) const
+	Vec sample(Vec const& N, Vec const& in, Vec const& color, float sampleX, float sampleY, Vec& out, bool& specular) const
 	{
 		out = sampleCosineWeightedRay(N, sampleX, sampleY);
 		specular = false;
 		return eval(in, out, N);
 	}
 
-	Vec eval(Vec const& in, Vec const& out, Vec const& N) const
+	Vec eval(Vec const& N, Vec const& in, Vec const& out, Vec const& color) const
 	{
 		Vec U, V, H;
 		genOrtho(N, U, V);
@@ -31,10 +33,11 @@ public:
 		float HdotL = dot(H,out);
 
 		// diffuse term
-		float pd = (28.0f * m_rd) / ( 23.0f * 3.14159f );
+		float pd = m_rd;
 		pd *= (1.0f - m_rs);
 		pd *= (1.0f - pow(1.0f - (LdotN / 2.0f), 5.0f));
 		pd *= (1.0f - pow(1.0f - (VdotN / 2.0f), 5.0f));
+		
 
 		// specular term
 		float ps_num_exp = m_nu * HdotU * HdotU + m_nv * HdotV * HdotV;
@@ -58,3 +61,6 @@ public:
 private:
 	 float m_rd, m_rs, m_nu, m_nv;
 };
+
+// Several options
+// Renderer sample texture value at intersection point, pass value to BRDF

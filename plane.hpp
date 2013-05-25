@@ -1,21 +1,20 @@
 #pragma once
 #include "geometry.hpp"
 
-struct Plane : public Geometry
+class Plane : public Geometry
 {
-	Plane(Vec const& normal_) : N(normal_.normalized())
+public:
+	Plane(Vec const& normal, Point const& pos) : Geometry(identityM, identityM), m_normal(normal.normalized()), m_pos(pos)
 	{}
 
 	virtual ~Plane()
 	{}
-
-	bool intersectPred(Ray const& r, Point const& pos) const {
-		return true;
-	}
-	bool intersect(Ray const& r, Point const& pos, float& dist, Vec& normal) const;
-
-	Vec N;
 	
+	virtual bool intersect(Ray const& ray, Intersection* isect) const;
+
+private:
+	Vec m_normal;
+	Point m_pos;
 };
 
-bool rayPlaneIntersection(Ray const& r, Vec const& N, Point const& P, float& dist);
+bool rayPlaneIntersection(Ray const& ray, Vec const& normal, Point const& point, float& dist);

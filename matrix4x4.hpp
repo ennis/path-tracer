@@ -29,30 +29,30 @@ struct Matrix4x4
 		d[3][0] = m30; d[3][1] = m31; d[3][2] = m32; d[3][3] = m33;
 	}
 
-	Vec apply(Vec const& v) const 
-	{
-		return Vec(d[0][0]*v.x() + d[0][1]*v.y() + d[0][2]*v.z() + d[0][3]*v.w(),
-				d[1][0]*v.x() + d[1][1]*v.y() + d[1][2]*v.z() + d[1][3]*v.w(),
-				d[2][0]*v.x() + d[2][1]*v.y() + d[2][2]*v.z() + d[2][3]*v.w(),
-				d[3][0]*v.x() + d[3][1]*v.y() + d[3][2]*v.z() + d[3][3]*v.w());
-	}
 
 	float d[4][4];
-
-	bool inverse(Matrix4x4& result);
-	Vec translation() const {
-		return Vec(d[0][3], d[1][3], d[2][3]);
-	}
-	
-	static Matrix4x4 lookAtLH(Point const& eye, Point const& lookat, Vec const& up);
-	static Matrix4x4 lookAtRH(Point const& eye, Point const& lookat, Vec const& up);
-	static Matrix4x4 translate(Vec const& vec);
-	static Matrix4x4 scale(float f);
-
 };
 
-static const Matrix4x4 identityM = Matrix4x4();
+Matrix4x4 MLookAtLH(Point const& eye, Point const& lookat, Vec const& up);
+Matrix4x4 MLookAtRH(Point const& eye, Point const& lookat, Vec const& up);
+Matrix4x4 MTranslate(Vec const& vec);
+Matrix4x4 MScale(float f);
+Matrix4x4 MTranspose(Matrix4x4 const& m);
+bool MInverse(Matrix4x4 const& mat, Matrix4x4& result); 
+Matrix4x4 MMultiply(Matrix4x4 const& m1, Matrix4x4 const& m2); 
+// TODO
+Matrix4x4 MMultiplyTranspose1(Matrix4x4 const& m1, Matrix4x4 const& m2); 
+Matrix4x4 MMultiplyTranspose2(Matrix4x4 const& m1, Matrix4x4 const& m2); 
 
-Matrix4x4 operator*(Matrix4x4 const& m1, Matrix4x4 const& m2);
+Vec MTransform(Matrix4x4 const& mat, Vec const& v);
+Vec MTransformTranspose(Matrix4x4 const& mat, Vec const& v);
+Point MTransformPoint(Matrix4x4 const& mat, Point const& p);
+Point MTransformPointTranspose(Matrix4x4 const& mat, Point const& p);
+Vec MTransformNormal(Matrix4x4 const& mat, Vec const& normal);
+Ray MTransformRay(Matrix4x4 const& mat, Ray const& ray);
+
+Vec MGetTranslation(Matrix4x4 const& mat);
+
+static const Matrix4x4 identityM = Matrix4x4();
 
 std::ostream& operator<< (std::ostream& os, Matrix4x4 const& m);

@@ -2,18 +2,12 @@
 #include <iostream>
 #include <cmath>
 
-bool rayPlaneIntersection(Ray const& r, Vec const& N, Point const& P, float& dist)
+bool rayPlaneIntersection(Ray const& ray, Vec const& normal, Point const& point, float& dist)
 {
-	if (fabs(dot(r.D, N)) < EPSILON) {
-		// XXX line inside plane?
-		//std::clog << r.D << ' ' << N << '\n';
+	if (fabs(dot(ray.D, normal)) < EPSILON) {
 		return false;
 	} else {
-		//std::clog << "P:" << P << '\n';
-		//std::clog << "r.O:" << r.O << '\n';
-		//std::clog << "diff:" << P - r.O << '\n';
-		dist = dot(P - r.O, N) / dot(r.D, N);
-		//std::clog << dist << '\n';
+		dist = dot(point - ray.O, normal) / dot(ray.D, normal);
 		if (dist < EPSILON) {
 			return false;
 		}
@@ -21,10 +15,13 @@ bool rayPlaneIntersection(Ray const& r, Vec const& N, Point const& P, float& dis
 	}
 }
 
-bool Plane::intersect(Ray const& r, Point const& pos, float& dist, Vec& normal) const
+bool Plane::intersect(Ray const& ray, Intersection* isect) const
 {
-	if (rayPlaneIntersection(r, N, pos, dist)) {
-		normal = N;
+	float dist;
+	if (rayPlaneIntersection(ray, m_normal, m_pos, isect->dist)) {
+		isect->N = m_normal;
+		isect->P = ray.O + isect->dist*ray.D;
+		isect->geometry = this;
 		return true;
 	} else {
 		return false;

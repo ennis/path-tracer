@@ -1,13 +1,28 @@
 #pragma once
 #include "geometry.hpp"
 
-struct Sphere : public Geometry
+class Sphere : public Geometry
 {
-	Sphere(float radius);
-	virtual ~Sphere();
+public:
+	Sphere(Matrix4x4 const& w2o, Matrix4x4 const& invw2o, float radius) : Geometry(w2o, invw2o), m_radius(radius)
+	{
+		m_aabb = transformAABB(w2o, AABB(Point(-radius, -radius, -radius), Point(radius, radius, radius)));
+	}
 
-	bool intersectPred(Ray const& r, Point const& pos) const;
-	bool intersect(Ray const& r, Point const& pos, float& dist, Vec& normal) const;
+	virtual ~Sphere()
+	{}
 
-	float radius;
+	virtual bool intersect(Ray const& ray, Intersection* isect) const;
+
+	virtual AABB getAABB() const {
+		return m_aabb;
+	}
+
+	virtual Vec getCenter() const {
+		return MGetTranslation(m_w2o);
+	}
+
+private:
+	AABB m_aabb;
+	float m_radius;
 };
