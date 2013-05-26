@@ -1,6 +1,6 @@
 #pragma once
 #include "vec.hpp"
-#include "matrix4x4.hpp"
+#include "transform.hpp"
 #include "bbox.hpp"
 
 class Geometry;
@@ -22,7 +22,7 @@ struct Intersection
 class Geometry
 {
 public:
-	Geometry(Matrix4x4 const &w2o, Matrix4x4 const& invw2o) : m_w2o(w2o), m_invw2o(invw2o)
+	Geometry(Transform const& w2o) : m_w2o(w2o)
 	{}
 
 	// In world space
@@ -32,14 +32,10 @@ public:
 		return AABB();
 	}
 
-	virtual Matrix4x4 const& getTransform() const {
+	virtual Transform const& getTransform() const {
 		return m_w2o;
 	}
 
-	virtual Matrix4x4 const& getInvTransform() const {
-		return m_invw2o;
-	}
-
 protected:
-	Matrix4x4 m_w2o, m_invw2o;
+	Transform m_w2o;
 };

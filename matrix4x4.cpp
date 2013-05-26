@@ -73,7 +73,7 @@ bool MInverse(Matrix4x4 const& mat, Matrix4x4 &result)
     return true;
 }
 
-Matrix4x4 MMultiply(Matrix4x4 const& m1, Matrix4x4 const& m2);
+Matrix4x4 MMultiply(Matrix4x4 const& m1, Matrix4x4 const& m2)
 {
 	// TODO?
 	return Matrix4x4();
@@ -114,12 +114,31 @@ Matrix4x4 MTranslate(Vec const& vec)
 }
 
 Vec MApply(Matrix4x4 const& mat, Vec const& v) {
-	return Vec(mat.d[0][0]*v.x() + mat.d[0][1]*v.y() + mat.d[0][2]*v.z() + mat.d[0][3]*v.w(),
-			mat.d[1][0]*v.x() + mat.d[1][1]*v.y() + mat.d[1][2]*v.z() + mat.d[1][3]*v.w(),
-			mat.d[2][0]*v.x() + mat.d[2][1]*v.y() + mat.d[2][2]*v.z() + mat.d[2][3]*v.w(),
-			mat.d[3][0]*v.x() + mat.d[3][1]*v.y() + mat.d[3][2]*v.z() + mat.d[3][3]*v.w());
+	return Vec(mat.d[0][0]*v.x() + mat.d[0][1]*v.y() + mat.d[0][2]*v.z(),
+			   mat.d[1][0]*v.x() + mat.d[1][1]*v.y() + mat.d[1][2]*v.z(),
+			   mat.d[2][0]*v.x() + mat.d[2][1]*v.y() + mat.d[2][2]*v.z(),
+			   0);
+}
+
+Point MApplyPoint(Matrix4x4 const& mat, Point const& p) {
+	return Point(mat.d[0][0]*p.x() + mat.d[0][1]*p.y() + mat.d[0][2]*p.z() + mat.d[0][3]*p.w(),
+				 mat.d[1][0]*p.x() + mat.d[1][1]*p.y() + mat.d[1][2]*p.z() + mat.d[1][3]*p.w(),
+				 mat.d[2][0]*p.x() + mat.d[2][1]*p.y() + mat.d[2][2]*p.z() + mat.d[2][3]*p.w());
+}
+
+Vec MApplyTranspose(Matrix4x4 const& mat, Vec const& v) {
+	return Vec(mat.d[0][0]*v.x() + mat.d[1][0]*v.y() + mat.d[2][0]*v.z(),
+			   mat.d[0][1]*v.x() + mat.d[1][1]*v.y() + mat.d[2][1]*v.z(),
+			   mat.d[0][2]*v.x() + mat.d[1][2]*v.y() + mat.d[2][2]*v.z(),
+			   0);
+}
+
+Point MApplyTransposePoint(Matrix4x4 const& mat, Point const& p) {
+	return Point(mat.d[0][0]*p.x() + mat.d[1][0]*p.y() + mat.d[2][0]*p.z() + mat.d[3][0]*p.w(),
+				 mat.d[0][1]*p.x() + mat.d[1][1]*p.y() + mat.d[2][1]*p.z() + mat.d[3][1]*p.w(),
+				 mat.d[0][2]*p.x() + mat.d[1][2]*p.y() + mat.d[2][2]*p.z() + mat.d[3][2]*p.w());
 }
 
 Vec MGetTranslation(Matrix4x4 const& mat) {
-	return Vec(mat.d[0][3], mat.d[1][3], mat.d[2][3]);
+	return Vec(-mat.d[0][3], -mat.d[1][3], -mat.d[2][3]);
 }

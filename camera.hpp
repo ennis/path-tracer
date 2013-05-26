@@ -43,13 +43,13 @@ public:
 		Vec camdir((px / pixelWidth - 0.5f) * m_width, 
 				   (py / pixelHeight - 0.5f) * m_height,
 				   m_screenDist);
-		return Ray(m_eye, MTransform(m_viewM, camdir));
+		return Ray(m_eye, MApply(m_viewM, camdir));
 	}
 
 
 private:
-	Point const& m_eye;
-	Point const& m_lookAt;
+	Point m_eye;
+	Point m_lookAt;
 	Vec m_up;
 	float m_width;
 	float m_height;

@@ -4,7 +4,7 @@
 class Plane : public Geometry
 {
 public:
-	Plane(Vec const& normal, Point const& pos) : Geometry(identityM, identityM), m_normal(normal.normalized()), m_pos(pos)
+	Plane(Vec const& normal, Point const& pos) : Geometry(identityT), m_normal(normal.normalized()), m_pos(pos)
 	{}
 
 	virtual ~Plane()

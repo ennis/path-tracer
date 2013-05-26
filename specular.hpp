@@ -13,7 +13,7 @@ public:
 	Vec sample(Vec const& N, Vec const& in, Vec const& color, float sampleX, float sampleY, Vec& out, bool& specular) const
 	{
 		// generate ray in hemisphere
-		bool bounce;
+		//bool bounce;
 		//Vec R = reflectedRay(N, in);
 		out = sampleSpecularRay(N, in, specularCoef_, sampleX, sampleY);
 		if (dot(N,out) < 0.f) {

@@ -22,8 +22,6 @@ static float ssdisp[9][2] = {
 
 static bool findIntersection(std::vector<Primitive*> const& scene, Ray const& ray, Intersection *isect, Material const** mat);
 
-static uint32_t mapRGB(Vec const& c);
-
 static void showProgress(unsigned int line, unsigned int height)
 {
 	std::clog << '\r' << std::setw(3) << (line * 100) / height << "% - line " << line << " of " << height; 
@@ -31,7 +29,8 @@ static void showProgress(unsigned int line, unsigned int height)
 
 Vec Renderer::evaluateDirectLighting(Intersection const& isect, Vec const& in, Vec const& color, BSDF const* bsdf)
 {
-	for (std::vector<Primitive*>::const_iterator p = m_scene->cbegin(); p != m_scene->cend(); ++p)
+	Vec e = nullVec;
+	for (std::vector<Primitive const*>::const_iterator p = m_scene->cbegin(); p != m_scene->cend(); ++p)
 	{
 		Material const *light_mat = (*p)->getMaterial();
 		if (light_mat->getEmittance() == Vec(0,0,0)) {
@@ -43,7 +42,7 @@ Vec Renderer::evaluateDirectLighting(Intersection const& isect, Vec const& in, V
 		// Position of sphere (assume it's a spherical light source)
 		GeometricPrimitive const *geom = static_cast<GeometricPrimitive const*>(*p);
 		Sphere const* sphere = static_cast<Sphere const*>(geom->getGeometry());
-		Vec L = sphere->getCenter();
+		Point L = sphere->getCenter();
 		Vec D = (L - isect.P);
 		float d2 = dot(D,D);
 		// Radius?
@@ -72,18 +71,21 @@ Vec Renderer::evaluateDirectLighting(Intersection const& isect, Vec const& in, V
 		else {
 			// shoot shadow ray
 			Intersection isect2;
-			if (sphere->intersect(Ray(isect.P, Rd), &isect2)) {
-				return light_mat->getEmittance() * (bsdf->eval(in, Rd, isect.N, color * omega * (1.f / M_PI) * dot(isect.N, Rd));
+			Material const* tmp_mat;
+			findIntersection(*m_scene, Ray(isect.P, Rd), &isect2, &tmp_mat);
+			if (isect2.geometry == sphere) {
+				e += light_mat->getEmittance() * bsdf->eval(isect.N, in, Rd, color) * omega * (1.f / M_PI) * dot(isect.N, Rd);
 				//std::cout << "OK\n";
 			} else {
 				//std::cout << "SHADOW\n";
 			}
 		}
 	}
+	return e;
 }
 
 // evaluate outgoing radiance at a given point
-Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight = true)
+Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight)
 {
 	//
 	// Stop tracing when the maximum depth is reached
@@ -103,6 +105,8 @@ Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight = true)
 		// TODO environment maps
 		return m_ambient;
 	}
+
+	//return Vec(1.f,1.f,1.f) * isect.dist / 20.f;
 
 	//
 	// skip sampling if this is a light source
@@ -190,20 +194,21 @@ Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight = true)
 }*/
 
 
-bool findIntersection(std::vector<Primitive*> const& scene, Ray const& ray, Intersection *isect, Material const** mat)
+bool findIntersection(std::vector<Primitive const*> const& scene, Ray const& ray, Intersection *isect, Material const** mat)
 {
-	static const float INFINITE = 1e30; 
-	float dist = INFINITE;
-	float near, far;
+	static const float INFINITE = 1e30f;
 	Intersection current_isect;
+	Material const *tmp_mat;
+	isect->dist = INFINITE;
 	bool hit = false;
-	for (std::vector<Primitive*>::const_iterator p = scene.cbegin(); p != scene.cend(); ++p)
+	for (std::vector<Primitive const*>::const_iterator p = scene.cbegin(); p != scene.cend(); ++p)
 	{
-		if ((*p)->intersect(ray, &current_isect, mat)) {
+		if ((*p)->intersect(ray, &current_isect, &tmp_mat)) {
 			// confirmed hit
-			if (hit == false || isect->dist < current_isect.dist) {
+			if (hit == false || current_isect.dist < isect->dist) {
 				hit = true;
 				*isect = current_isect;
+				*mat = tmp_mat;
 			}
 		}
 	}
@@ -214,9 +219,9 @@ bool findIntersection(std::vector<Primitive*> const& scene, Ray const& ray, Inte
 uint32_t mapRGB(Vec const& c)
 {
 	Vec cl = clamp(c, 0.f, 1.f);
-	uint8_t r = cl.x()*255.f;
-	uint8_t g = cl.y()*255.f;
-	uint8_t b = cl.z()*255.f;
+	uint8_t r = static_cast<uint8_t>(cl.x()*255.f);
+	uint8_t g = static_cast<uint8_t>(cl.y()*255.f);
+	uint8_t b = static_cast<uint8_t>(cl.z()*255.f);
 	return r | g << 8 | b << 16 | 0xFF << 24;
 }
 
@@ -228,20 +233,38 @@ Vec Renderer::samplePixel(float x, float y)
 	for (unsigned int i = 0; i < m_params.samplesPerPixel; ++i) {
 		float xrand = frand(-0.5, 0.5);
 		float yrand = frand(-0.5, 0.5);
-		sample = sample + trace(m_camera->rayThroughCameraPixel(x + xrand , y + yrand, m_params.pixelWidth, m_params.pixelHeight), 0, true);
+		sample = sample + trace(
+					m_camera->rayThroughCameraPixel(
+						x + xrand, 
+						y + yrand, 
+						static_cast<float>(m_params.pixelWidth),
+						static_cast<float>(m_params.pixelHeight)), 
+						0, 
+						true);
 	}
 	sample = sample * invsppf;
 	sample = clamp(sample, 0.f, 1.f);
 	return sample;
 }
 
-void Renderer::render(Camera const& camera, std::vector<Primitive const*> const& scene, Film& out_film)
+/*Vec Renderer::samplePixelProgressive(float x, float y)
 {
+	// approximate radiance using monte-carlo method
+	float xrand = frand(-0.5, 0.5);
+	float yrand = frand(-0.5, 0.5);
+	return trace(m_camera->rayThroughCameraPixel(x + xrand , y + yrand, m_params.pixelWidth, m_params.pixelHeight), 0, true);;
+}*/
+
+void Renderer::render(RenderParameters const& params, Camera const& camera, std::vector<Primitive const*> const& scene, Film& out_film)
+{
+	m_params = params;
 	m_scene = &scene;
 	m_camera = &camera;
 
 	//float sppf = static_cast<float>(rs.samplesPerPixel);
 	const float invssppf = 1.f / static_cast<float>(NUM_SUPERSAMPLES);
+
+	m_started = true;
 
 #pragma omp parallel for
 	for (int i = 0; i < m_params.pixelHeight; ++i) 
@@ -256,13 +279,43 @@ void Renderer::render(Camera const& camera, std::vector<Primitive const*> const&
 				}
 				accum = accum * invssppf;
 			} else {
-				accum = samplePixel(j, i);
+				accum = samplePixel(static_cast<float>(j), static_cast<float>(i));
 				m_samples++;
 			}
 					
-			out_film.setPixel(j, i, accum);
+			out_film.accumPixel(j, i, accum);
 		}
 		m_lines++;
 		showProgress(m_lines, m_params.pixelHeight);
 	}
+
+	m_finished = false;
 }
+
+/*void Renderer::renderProgressive(Camera const& camera, std::vector<Primitive const*> const& scene, Film& out_film)
+{
+	#pragma omp parallel for
+	
+	for (unsigned int ss = 0; ss < m_params.samplesPerPixel; ++ss) 
+	{
+		for (int i = 0; i < m_params.pixelHeight; ++i) 
+		{
+			for (int j = 0; j < m_params.pixelWidth; ++j) 
+			{
+				if (m_params.supersampling) {
+						accum = accum + samplePixelProgressive(j+ssdisp[ss][0], i+ssdisp[ss][1]);
+						m_samples++;
+					}
+					accum = accum * invssppf;
+				} else {
+					accum = samplePixel(j, i);
+					m_samples++;
+				}
+					
+				out_film.setPixel(j, i, accum);
+			}
+			m_lines++;
+			showProgress(m_lines, m_params.pixelHeight);
+		}
+	}
+}*/

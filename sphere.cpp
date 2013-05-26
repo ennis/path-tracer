@@ -1,21 +1,20 @@
 #include "sphere.hpp"
 #include <iostream>
 
-
-
 bool Sphere::intersect(Ray const& ray, Intersection* isect) const
 {
-	Matrix4x4 const &M = getTransform();
+	Transform const &T = getTransform();
 
 	// Ray to object space
-	Ray Robj = MTransformRay(M, ray);
+	Ray Robj = transformRay(T, ray);
+	Vec RO = Robj.O - Point(0,0,0);
 
 	float dist;
 
 	// Compute A, B and C coefficients
-	float a = dot(Robj.D, Robj.D);
-	float b = 2 * dot(Robj.D, Robj.O);
-	float c = dot(Robj.O, Robj.O) - (m_radius * m_radius);
+	float a = 1.f;
+	float b = 2 * dot(Robj.D, RO);
+	float c = dot(RO, RO) - (m_radius * m_radius);
 	//std::clog << a << ' ' << b << ' ' << c << std::endl;
 	// Find discriminant
 	float disc = b*b - 4*a*c;
@@ -40,8 +39,9 @@ bool Sphere::intersect(Ray const& ray, Intersection* isect) const
   	Vec N = P - Point(0,0,0);
 
 	if (isect != NULL) {
-		isect->P = MApplyPoint(m_invw2o, P);
-		isect->N = MApplyNormal(m_invw2o, N);
+		isect->P = invTransformPoint(T, P);
+		isect->N = invTransformNormal(T, N);
+		isect->dist = dist;
 		isect->geometry = this;
 	}
 

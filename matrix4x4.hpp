@@ -44,15 +44,17 @@ Matrix4x4 MMultiply(Matrix4x4 const& m1, Matrix4x4 const& m2);
 Matrix4x4 MMultiplyTranspose1(Matrix4x4 const& m1, Matrix4x4 const& m2); 
 Matrix4x4 MMultiplyTranspose2(Matrix4x4 const& m1, Matrix4x4 const& m2); 
 
-Vec MTransform(Matrix4x4 const& mat, Vec const& v);
-Vec MTransformTranspose(Matrix4x4 const& mat, Vec const& v);
-Point MTransformPoint(Matrix4x4 const& mat, Point const& p);
-Point MTransformPointTranspose(Matrix4x4 const& mat, Point const& p);
-Vec MTransformNormal(Matrix4x4 const& mat, Vec const& normal);
-Ray MTransformRay(Matrix4x4 const& mat, Ray const& ray);
+Vec MApply(Matrix4x4 const& mat, Vec const& v);
+Vec MApplyTranspose(Matrix4x4 const& mat, Vec const& v);
+Point MApplyPoint(Matrix4x4 const& mat, Point const& p);
+
 
 Vec MGetTranslation(Matrix4x4 const& mat);
 
 static const Matrix4x4 identityM = Matrix4x4();
+
+static inline Matrix4x4 operator*(Matrix4x4 const& m1, Matrix4x4 const& m2) {
+	return MMultiply(m1, m2);
+}
 
 std::ostream& operator<< (std::ostream& os, Matrix4x4 const& m);

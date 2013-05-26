@@ -1,8 +1,7 @@
 #pragma once
 #include "vec.hpp"
 #include "ray.hpp"
-#include "matrix4x4.hpp"
-#include "geometry.hpp"
+#include "transform.hpp"
 
 struct AABB 
 {
@@ -11,7 +10,7 @@ struct AABB
 		sx0 = sx1 = sy0 = sy1 = sz0 = sz1 = 0;
 	}
 
-	AABB(Vec const& lowerleft, Vec const& upperright)
+	AABB(Point const& lowerleft, Point const& upperright) : m_lowerleft(lowerleft), m_upperright(upperright)
 	{
 		sx0 = std::min(lowerleft.x(), upperright.x());
 		sx1 = std::max(lowerleft.x(), upperright.x());
@@ -20,7 +19,9 @@ struct AABB
 		sz0 = std::min(lowerleft.z(), upperright.z());
 		sz1 = std::max(lowerleft.z(), upperright.z());
 	}
-	
+
+	Point m_lowerleft;
+	Point m_upperright;
 	float sx0;
 	float sx1;
 	float sy0;
@@ -31,4 +32,10 @@ struct AABB
 
 bool rayAABBIntersect(Ray const& ray, AABB const& aabb, float& near, float& far);
 
-AABB transformAABB(Matrix4x4 const& m, AABB const& aabb);
+static inline AABB transformAABB(Transform const& T, AABB const& aabb) {
+	return AABB(transformPoint(T, aabb.m_lowerleft), transformPoint(T, aabb.m_upperright));
+}
+
+static inline AABB invTransformAABB(Transform const& T, AABB const& aabb) {
+	return AABB(invTransformPoint(T, aabb.m_lowerleft), invTransformPoint(T, aabb.m_upperright));
+}

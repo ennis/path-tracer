@@ -75,9 +75,9 @@ struct Vec
 	}
 
 	__m128 xyzw;
-
-	static const Vec null;
 };
+
+static const Vec nullVec = Vec();
 
 struct Point : public Vec
 {
@@ -89,6 +89,7 @@ struct Point : public Vec
 	
 	Point(float x, float y, float z) : Vec(x, y, z, 1)
 	{}
+
 };
 
 static const Vec COLOR_BLACK = Vec(0,0,0);
@@ -141,7 +142,7 @@ static inline Vec operator * (Vec const& V, float s)
 static inline Vec operator / (Vec const& V, float s) 
 { 
 	__m128 t = _mm_set1_ps(s);
-	return Vec(_mm_div_ps(t,V.xyzw));
+	return Vec(_mm_div_ps(V.xyzw,t));
 }
 
 // component multiply

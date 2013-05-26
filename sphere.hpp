@@ -4,7 +4,7 @@
 class Sphere : public Geometry
 {
 public:
-	Sphere(Matrix4x4 const& w2o, Matrix4x4 const& invw2o, float radius) : Geometry(w2o, invw2o), m_radius(radius)
+	Sphere(Transform const& w2o, float radius) : Geometry(w2o), m_radius(radius)
 	{
 		m_aabb = transformAABB(w2o, AABB(Point(-radius, -radius, -radius), Point(radius, radius, radius)));
 	}
@@ -18,8 +18,8 @@ public:
 		return m_aabb;
 	}
 
-	virtual Vec getCenter() const {
-		return MGetTranslation(m_w2o);
+	virtual Point getCenter() const {
+		return Point(0,0,0) + MGetTranslation(m_w2o.m_t);
 	}
 
 	virtual float getRadius() const {
