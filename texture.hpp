@@ -39,8 +39,7 @@ public:
 	{}
 
 	virtual Vec sample(float u, float v) const {
-		// TODO
-		return m_color1;
+		return ((fmodf(u/m_width, 1.f) < 0.5f) ^ (fmodf(v/m_height, 1.f) < 0.5f)) ? m_color1 : m_color2;
 	}
 
 private:

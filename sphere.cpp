@@ -36,7 +36,7 @@ bool Sphere::intersect(Ray const& ray, Intersection* isect) const
 		dist = t0;
 	}
 	Point P = Robj.O + dist*Robj.D;
-  	Vec N = P - Point(0,0,0);
+	Vec N = (P - Point(0,0,0)).normalized();
 
 	if (isect != NULL) {
 		isect->P = invTransformPoint(T, P);
@@ -44,6 +44,10 @@ bool Sphere::intersect(Ray const& ray, Intersection* isect) const
 		isect->dist = dist;
 		isect->geometry = this;
 	}
+
+	// u,v coords
+	isect->u = 0.5f + atan2f(N.z(), N.x()) / (2 * M_PI);
+	isect->v = 0.5f + 2.f * asinf(N.y()) / (2 * M_PI);
 
 	return true;
 }

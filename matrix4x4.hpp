@@ -37,6 +37,7 @@ Matrix4x4 MLookAtLH(Point const& eye, Point const& lookat, Vec const& up);
 Matrix4x4 MLookAtRH(Point const& eye, Point const& lookat, Vec const& up);
 Matrix4x4 MTranslate(Vec const& vec);
 Matrix4x4 MScale(float f);
+Matrix4x4 MScale(Vec const& v);
 Matrix4x4 MTranspose(Matrix4x4 const& m);
 bool MInverse(Matrix4x4 const& mat, Matrix4x4& result); 
 Matrix4x4 MMultiply(Matrix4x4 const& m1, Matrix4x4 const& m2); 

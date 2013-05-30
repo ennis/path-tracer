@@ -96,7 +96,7 @@ class Renderer
 public:
 	Renderer() : 
 		m_params(), m_camera(NULL), m_ambient(Vec()), 
-		m_scene(NULL), m_lightSources(NULL), m_samples(0), 
+		m_scene(NULL), m_lightSources(NULL), m_samples(0), m_frames(0),
 		m_lines(0), m_started(false), m_finished(false)
 	{}
 
@@ -115,12 +115,28 @@ public:
 		return m_samples;
 	}
 
+	unsigned int getNumFrames() const {
+		return m_frames;
+	}
+
+	RenderParameters const& getParameters() const {
+		return m_params;
+	}
+
+	void stopProgressive() {
+		m_finished = true;
+	}
+
 private:
 
 	// private methods
 
+	void renderProgressive(Film& out_film);
+	void renderScanline(Film& out_film);
+
 	Vec evaluateDirectLighting(Intersection const& isect, Vec const& in, Vec const& color, BSDF const* bsdf);
 	Vec samplePixel(float x, float y);
+	Vec samplePixelProgressive(float x, float y);
 	Vec trace(Ray const& ray, unsigned int depth, bool seeLight = true);
 
 	RenderParameters m_params;
@@ -130,6 +146,7 @@ private:
 	std::vector<Primitive const*> const * m_lightSources;
 
 	unsigned int m_samples;
+	unsigned int m_frames;
 	unsigned int m_lines;
 	bool m_started;
 	bool m_finished;

@@ -27,8 +27,8 @@
 
 using namespace std;
 
-static const unsigned int XRES = 320;
-static const unsigned int YRES = 240;
+static const unsigned int XRES = 640;
+static const unsigned int YRES = 480;
 static const float ASPECT_RATIO = static_cast<float>(XRES)/static_cast<float>(YRES);
 
 sf::Texture texture;
@@ -94,32 +94,40 @@ void work()
 {	
 	RenderParameters params;
 	params.samplesPerPixel = 50;
-	params.maxDepth = 5;
+	params.maxDepth = 8;
 	params.supersampling = true;
 	params.cosineWeightedSampling = false;
 	params.directLightingOnly = false;
 	params.explicitLightSampling = true;
 	params.pixelWidth = XRES;
 	params.pixelHeight = YRES;
+	params.progressive = true;
 
-	Camera cam(Point(0.f, 2.f, -3.5f), Point(0.f, 0.f, 0.f), ASPECT_RATIO, 1.f);
+	Camera cam(Point(0.f, 2.f, -4.5f), Point(0.f, 0.f, 0.f), ASPECT_RATIO, 1.f);
 
 	Material const* glass110 = createGlassMaterial(1.10f, Vec(1.f, 1.f, 1.f));
 	Material const* mirror = createMirrorMaterial(Vec(1.f, 1.f, 1.f));
 	Material const* greenDiffuse = createDiffuseMaterial(Vec(0.f, 1.f, 0.f));
-	Material const* greenSchlickMat = createGlossyMaterial(Vec(0.7f, 1.f, 0.7f), 0.03f);
-	Material const* diffuseWallDownMat = createDiffuseMaterial(Vec(0.2f, 0.9f, 0.2f));
-	Material const* lightMat = createLightMaterial(Vec(10.f, 10.f, 10.f));
+	Material const* greenSchlickMat = createGlossyMaterial(Vec(0.2f, 1.f, 0.7f), 0.2f);
+	//Material const* diffuseWallDownMat = createDiffuseMaterial(Vec(0.2f, 0.9f, 0.2f));
+	Material const* lightMat = createLightMaterial(Vec(10.f, 10.f, 8.f));
 
-	GeometricPrimitive const* sphere = createSphere(Point(0.f, 0.f, 0.f), 1.f, greenSchlickMat);
-	GeometricPrimitive const* wallDown = createPlane(Point(0.f, -1.3f, 0.f), Vec(0.f, 1.f, 0.f), diffuseWallDownMat);
+	Texture const* checkerboard = new CheckerboardTexture(Vec(0.f, 0.f, 0.f), Vec(1.0f, 1.0f, 1.0f), 1.f, 1.f);
+	Material const* diffuseWallDownMat = new Material(checkerboard, nullVec, false, new DiffuseBSDF());
+	Material const* sphereMat = new Material(new ColorTexture(Vec(1.f, 1.f, 0.5f)), nullVec, false, new SchlickBSDF(0.10f));
+
+	GeometricPrimitive const* sphere = createSphere(Point(0.f, 0.f, 1.f), 1.f, glass110);
+	GeometricPrimitive const* wallDown = createPlane(Point(0.f, -2.f, 0.f), Vec(0.f, 1.f, 0.f), diffuseWallDownMat);
 	GeometricPrimitive const* lightSource = createSphere(Point(0.f, 10.f, 2.f), 3.f, lightMat);
 
+	Geometry const* ellipsoidGeom = new Sphere(scale(Vec(1.35f, 1.15f, 1.f)), 1.f);
+	GeometricPrimitive const* ellipsoid = new GeometricPrimitive(ellipsoidGeom, sphereMat);
+
 	std::vector<Primitive const*> scene;
-	scene.push_back(sphere);
+	scene.push_back(ellipsoid);
 	scene.push_back(wallDown);
 	scene.push_back(lightSource);
-	
+
 	renderer->render(params, cam, scene, *film);
 }
 
@@ -148,8 +156,10 @@ int main(int argc, char ** argv)
 	renderer = new Renderer;
 	uint32_t *textureData = new uint32_t[XRES*YRES];
 
-	std::stringstream sps_str("??? SPS");
+	
 	sf::Clock clock;	// clock to measure SPS
+	long delta = 0;
+	unsigned int samplesPerSecond = 0;
 	unsigned int lastSamples = 0;
 
 	sf::Font font;
@@ -157,11 +167,22 @@ int main(int argc, char ** argv)
 		std::cerr << "font.loadFromFile failed\n";
 		return EXIT_FAILURE;
 	}
+
+	sf::Text sps_text;
+	sps_text.setFont(font);
+	sps_text.setColor(sf::Color(255, 255, 255, 255));
+	sps_text.setPosition(10.f, 38.f);
+	
+	sf::Text samples_text;
+	samples_text.setFont(font);
+	samples_text.setColor(sf::Color(255, 255, 255, 255));
+	samples_text.setPosition(10.f, 10.f);
 	
 	//
 	// launch render thread
 	//
 	std::thread worker(&work);
+
 
     while (window.isOpen())
     {
@@ -176,11 +197,17 @@ int main(int argc, char ** argv)
 			//
             if (event.type == sf::Event::Closed) {
                 window.close();
+				if (renderer->getParameters().progressive) {
+					renderer->stopProgressive();
+				}
 				break;
 			}
 			else if (event.type == sf::Event::KeyPressed) {
 				if (event.key.code == sf::Keyboard::Escape) {
 					window.close();
+					if (renderer->getParameters().progressive) {
+						renderer->stopProgressive();
+					}
 					break;
 				}
 			}
@@ -199,10 +226,20 @@ int main(int argc, char ** argv)
 				//
 				// Draw text
 				//
-				sf::Text sps_text(sps_str.str(), font);
-				sps_text.setColor(sf::Color(255, 255, 255, 255));
-				sps_text.setPosition(10.f, 38.f);
-				window.draw(sps_text);
+				if (renderer->getParameters().progressive) {
+					std::stringstream ss;
+					ss << renderer->getNumFrames();
+					samples_text.setString(ss.str());
+					window.draw(samples_text);
+				}
+
+				if (delta != 0) {
+					std::stringstream ss;
+					ss << samplesPerSecond;
+					ss << " SPS";
+					sps_text.setString(ss.str());
+					window.draw(sps_text);
+				}
 			}
 		
 			//
@@ -215,17 +252,15 @@ int main(int argc, char ** argv)
 				//
 				// update texture every 250ms
 				//
-				long delta = clock.getElapsedTime().asMilliseconds();
+				delta = clock.getElapsedTime().asMilliseconds();
 				if (delta >= 250) 
 				{
 					film->convertToRGB(textureData);
 					texture.update((sf::Uint8*)textureData, XRES, YRES, 0, 0);
 					unsigned int curSamples = renderer->getNumSamples();
-					sps_str.str("");
-					sps_str << (curSamples - lastSamples)*1000/delta;
-					sps_str << " SPS";
-					clock.restart();
+					samplesPerSecond = (curSamples - lastSamples)*1000/delta;
 					lastSamples = curSamples;
+					clock.restart();
 				}
 			}
 		} 

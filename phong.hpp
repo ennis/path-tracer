@@ -23,7 +23,7 @@ public:
 	{
 		Vec H = halfway(in, out);
 		float s = powf(dot(N,H), phongCoef_);
-		return Vec(s,s,s);
+		return Vec(0.5f, 0.5f, 0.5f) + Vec(s,s,s);
 	}
 
 	bool isSpecular() const {

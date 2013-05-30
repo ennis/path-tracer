@@ -113,6 +113,14 @@ Matrix4x4 MTranslate(Vec const& vec)
     				 0, 0, 0, 1);
 }
 
+Matrix4x4 MScale(Vec const& v)
+{
+	return Matrix4x4(v.x(), 0, 0, 0,
+                     0, v.y(), 0, 0, 
+    				 0, 0, v.z(), 0,
+    				 0, 0, 0, 1);
+}
+
 Vec MApply(Matrix4x4 const& mat, Vec const& v) {
 	return Vec(mat.d[0][0]*v.x() + mat.d[0][1]*v.y() + mat.d[0][2]*v.z(),
 			   mat.d[1][0]*v.x() + mat.d[1][1]*v.y() + mat.d[1][2]*v.z(),

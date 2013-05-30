@@ -21,6 +21,13 @@ bool Plane::intersect(Ray const& ray, Intersection* isect) const
 		isect->N = m_normal;
 		isect->P = ray.O + isect->dist*ray.D;
 		isect->geometry = this;
+		Vec U,V,D;
+		genOrtho(m_normal,U,V);
+		D = isect->P - m_pos;
+		isect->u = fmodf(dot(D,U), 1.f);
+		isect->u = isect->u < 0.f ? (1.f + isect->u) : isect->u;
+		isect->v = fmodf(dot(D,V), 1.f);
+		isect->v = isect->v < 0.f ? (1.f + isect->v) : isect->v;
 		return true;
 	} else {
 		return false;

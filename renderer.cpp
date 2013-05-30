@@ -20,8 +20,6 @@ static float ssdisp[9][2] = {
 	{SS_EPSILON, SS_EPSILON},
 };
 
-static bool findIntersection(std::vector<Primitive*> const& scene, Ray const& ray, Intersection *isect, Material const** mat);
-
 static void showProgress(unsigned int line, unsigned int height)
 {
 	std::clog << '\r' << std::setw(3) << (line * 100) / height << "% - line " << line << " of " << height; 
@@ -116,13 +114,11 @@ Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight)
 	}
 
 
-	Vec accum = Vec(0,0,0);
 	Vec out, value, e;
 	const float invsppf = 1.f / static_cast<float>(m_params.samplesPerPixel);
 	bool nextSeeLight = true;
 	float sampleX = frand(0,1);
 	float sampleY = frand(0,1);
-	bool specular;
 
 	//
 	// Get the BSDF for the sampled material
@@ -137,6 +133,7 @@ Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight)
 	//
 	// Sample the BSDF at the intersection point
 	//
+	bool specular;
 	value = bsdf->sample(isect.N, -ray.D, color, sampleX, sampleY, out, specular);
 	
 	if (specular) {	
@@ -151,7 +148,7 @@ Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight)
 		//
 		// evaluate direct lighting
 		if (m_params.explicitLightSampling) {
-			seeLight = false;
+			nextSeeLight = false;
 			e = evaluateDirectLighting(isect, -ray.D, color, bsdf);
 		}
 		
@@ -160,7 +157,7 @@ Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight)
 			return color*e;
 		}
 		else {
-			return color*(e + value*trace(Ray(isect.P,out), depth+1, seeLight));
+			return color*(e + value*trace(Ray(isect.P, out), depth+1, nextSeeLight));
 		}
 	}
 }
@@ -229,7 +226,6 @@ Vec Renderer::samplePixel(float x, float y)
 {
 	const float invsppf = 1.f / static_cast<float>(m_params.samplesPerPixel);
 	Vec sample;
-	// approximate radiance using monte-carlo method
 	for (unsigned int i = 0; i < m_params.samplesPerPixel; ++i) {
 		float xrand = frand(-0.5, 0.5);
 		float yrand = frand(-0.5, 0.5);
@@ -239,21 +235,20 @@ Vec Renderer::samplePixel(float x, float y)
 						y + yrand, 
 						static_cast<float>(m_params.pixelWidth),
 						static_cast<float>(m_params.pixelHeight)), 
-						0, 
-						true);
+					0, 
+					true);
 	}
 	sample = sample * invsppf;
 	sample = clamp(sample, 0.f, 1.f);
 	return sample;
 }
 
-/*Vec Renderer::samplePixelProgressive(float x, float y)
+Vec Renderer::samplePixelProgressive(float x, float y)
 {
-	// approximate radiance using monte-carlo method
 	float xrand = frand(-0.5, 0.5);
 	float yrand = frand(-0.5, 0.5);
-	return trace(m_camera->rayThroughCameraPixel(x + xrand , y + yrand, m_params.pixelWidth, m_params.pixelHeight), 0, true);;
-}*/
+	return trace(m_camera->rayThroughCameraPixel(x + xrand , y + yrand, m_params.pixelWidth, m_params.pixelHeight), 0, true);
+}
 
 void Renderer::render(RenderParameters const& params, Camera const& camera, std::vector<Primitive const*> const& scene, Film& out_film)
 {
@@ -261,10 +256,19 @@ void Renderer::render(RenderParameters const& params, Camera const& camera, std:
 	m_scene = &scene;
 	m_camera = &camera;
 
+	m_started = true;
+
+	if (params.progressive) {
+		renderProgressive(out_film);
+	} else {
+		renderScanline(out_film);
+	}
+}
+
+void Renderer::renderScanline(Film& out_film)
+{
 	//float sppf = static_cast<float>(rs.samplesPerPixel);
 	const float invssppf = 1.f / static_cast<float>(NUM_SUPERSAMPLES);
-
-	m_started = true;
 
 #pragma omp parallel for
 	for (int i = 0; i < m_params.pixelHeight; ++i) 
@@ -292,30 +296,20 @@ void Renderer::render(RenderParameters const& params, Camera const& camera, std:
 	m_finished = false;
 }
 
-/*void Renderer::renderProgressive(Camera const& camera, std::vector<Primitive const*> const& scene, Film& out_film)
+void Renderer::renderProgressive(Film& out_film)
 {
-	#pragma omp parallel for
-	
-	for (unsigned int ss = 0; ss < m_params.samplesPerPixel; ++ss) 
+	while (!m_finished) 
 	{
+		#pragma omp parallel for
 		for (int i = 0; i < m_params.pixelHeight; ++i) 
 		{
 			for (int j = 0; j < m_params.pixelWidth; ++j) 
 			{
-				if (m_params.supersampling) {
-						accum = accum + samplePixelProgressive(j+ssdisp[ss][0], i+ssdisp[ss][1]);
-						m_samples++;
-					}
-					accum = accum * invssppf;
-				} else {
-					accum = samplePixel(j, i);
-					m_samples++;
-				}
-					
-				out_film.setPixel(j, i, accum);
+				Vec accum = samplePixelProgressive(static_cast<float>(j), static_cast<float>(i));
+				out_film.accumPixel(j, i, accum);
+				m_samples++;
 			}
-			m_lines++;
-			showProgress(m_lines, m_params.pixelHeight);
 		}
+		m_frames++;
 	}
-}*/
+}
