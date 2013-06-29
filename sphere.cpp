@@ -3,17 +3,14 @@
 
 bool Sphere::intersect(Ray const& ray, Intersection* isect) const
 {
-	Transform const &T = getTransform();
-
-	// Ray to object space
-	Ray Robj = transformRay(T, ray);
-	Vec RO = Robj.O - Point(0,0,0);
+	// Ray in object space
+	Vec RO = ray.O - Point(0,0,0);
 
 	float dist;
 
 	// Compute A, B and C coefficients
 	float a = 1.f;
-	float b = 2 * dot(Robj.D, RO);
+	float b = 2 * dot(ray.D, RO);
 	float c = dot(RO, RO) - (m_radius * m_radius);
 	//std::clog << a << ' ' << b << ' ' << c << std::endl;
 	// Find discriminant
@@ -35,19 +32,15 @@ bool Sphere::intersect(Ray const& ray, Intersection* isect) const
 	else {
 		dist = t0;
 	}
-	Point P = Robj.O + dist*Robj.D;
-	Vec N = (P - Point(0,0,0)).normalized();
 
-	if (isect != NULL) {
-		isect->P = invTransformPoint(T, P);
-		isect->N = invTransformNormal(T, N);
-		isect->dist = dist;
-		isect->geometry = this;
-	}
+	isect->P = ray.O + dist*ray.D;
+	isect->N = (isect->P - Point(0,0,0)).normalized();
+	isect->dist = dist;
+	isect->geometry = this;
 
 	// u,v coords
-	isect->u = 0.5f + atan2f(N.z(), N.x()) / (2 * M_PI);
-	isect->v = 0.5f + 2.f * asinf(N.y()) / (2 * M_PI);
+	isect->u = 0.5f + atan2f(isect->N.z(), isect->N.x()) / (2 * M_PI);
+	isect->v = 0.5f + 2.f * asinf(isect->N.y()) / (2 * M_PI);
 
 	return true;
 }

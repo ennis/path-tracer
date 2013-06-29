@@ -21,7 +21,7 @@ Vec refractedRay(Vec const& N, Vec const& I, float n)
 	float Nc = sqrt(rad) - cosi/n;
 	float Ic = 1/n;
 	//std::cout << Ic << ' , ' << Nc << '\n';
-	return -1.0f * Ic * I - Nc * N;
+	return - Ic * I - Nc * N;
 }
 
 Vec scatteredReflectedRay(Vec const& N, Vec const& I)
@@ -79,7 +79,23 @@ Vec sampleSpecularRay(Vec const& N, Vec const& I, float specCoef, float sampleX,
 	return Vt;
 }
 
-Vec halfway(Vec const& in, Vec const& out)
+Vec halfway(Vec const& Wi, Vec const& Wo)
 {
-  return (out+in).normalized();
+  return (Wo+Wi).normalized();
 }
+
+Vec cosineSampleHemisphere()
+{
+	float z = frand(0.f, 1.f);
+	float r = sqrt(z);
+	float theta = frand(0.f, 1.f) * 2.0f * M_PI;
+	return Vec(r * cos(theta), r * sin(theta), sqrt(1-z));
+}
+
+Vec uniformSampleHemisphere()
+{
+	float z = sqrt(frand(0,1));
+	float theta = acos(z);
+	float phi = frand(0, 2.0f*M_PI);
+	return Vec(sin(theta)*cos(phi), sin(theta)*sin(phi), z);
+}	

@@ -13,6 +13,9 @@ public:
 private:
 };
 
+
+//===================================
+// ColorTexture
 class ColorTexture : public Texture
 {
 public:
@@ -27,6 +30,9 @@ private:
 	Vec m_color;
 };
 
+
+//===================================
+// CheckerboardTexture
 class CheckerboardTexture : public Texture
 {
 public:
@@ -39,7 +45,7 @@ public:
 	{}
 
 	virtual Vec sample(float u, float v) const {
-		return ((fmodf(u/m_width, 1.f) < 0.5f) ^ (fmodf(v/m_height, 1.f) < 0.5f)) ? m_color1 : m_color2;
+		return ((fmodf(u / m_width, 1.f) < 0.5f) ^ (fmodf(v / m_height, 1.f) < 0.5f)) ? m_color1 : m_color2;
 	}
 
 private:

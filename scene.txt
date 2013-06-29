@@ -1,4 +1,78 @@
 
+Déclaration de la caméra:
+
+	camera {
+		lookat <vecteur> 
+		eye <vecteur>
+		up <vecteur>
+	}
+	
+Création d'un objet:
+
+object [Nom de l'objet] {
+	material <Déclaration matériau OU use 'référence matériau'>
+	geometry <Déclaration géométrie OU use 'référence géométrie'>
+	instance <Modèle>
+	rotate <Vecteur> <Angle>
+	translate <Vecteur>
+}
+
+renderer {
+	progressive 
+	bidirectional
+}
+
+camera {
+	
+}
+
+object test_sphere {
+	material {
+		glass 
+		refr 1.1
+	}
+	geometry { 
+		sphere
+		radius 1.0 
+	}
+	texture { checkerboard COLOR_WHITE COLOR_LIGHTGREEN }
+	translate <0.0 0.0 -1.0>
+}
+
+geometry {
+	indexed triangle mesh
+	vertices <...>  
+	indices <...>
+	normals <...>
+}
+
+geometry {
+	mesh 
+	import <filename>
+}
+
+Création d'un matériau
+
+material [Nom du matériau] {
+	glass {
+		refr <Indice de réfraction>
+	}
+
+	mirror {
+
+	}
+
+	schlick {
+		R0
+	}
+
+	color <couleur OU déclaration texture OU use 'référence couleur' OU use 'référence texture' 
+}
+
+texture {
+	checkerboard <vecteur couleur 1> <vecteur couleur 2>
+}
+
 camera {
 	lookat <0.0 0.0 0.0> eye <0.0 0.0 0.0> up <0.0 0.0 1.0>
 }
@@ -12,4 +86,24 @@ object obj {
 	material mat
 }
 
-renderer 
+
+
+TODO:
+Lecture d'un fichier de description
+Ray tracer sans illumination globale
+Gestion des transformations
+Gestion des textures
+Gestion des modèles de réflections
+
+bsdf.h
+
+class BSDF
+
+/*
+ * Sample: Génère une nouvelle direction pour le tracé de rayon
+ * et retourne la réflectance au point d'intersection
+ *
+ * 
+ */
+
+ MultiBSDF: N BSDFs at random with a probability distribution

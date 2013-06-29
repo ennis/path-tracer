@@ -2,6 +2,7 @@
 #include "util.hpp"
 #include "sphere.hpp"
 #include "primitive.hpp"
+#include "intersection.hpp"
 #include <iostream>
 #include <iomanip>
 
@@ -95,16 +96,13 @@ Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight)
 	Intersection isect;
 	Material const *mat;
 
-	//
-	// find nearest intersecting object
-	//
-	if (!findIntersection(*m_scene, ray, &isect, &mat)) {
+	//===========================================
+	// find intersection
+	if (!findIntersection(*m_scene, ray, &isect)) {
 		// no intersection : return ambient color
 		// TODO environment maps
 		return m_ambient;
 	}
-
-	//return Vec(1.f,1.f,1.f) * isect.dist / 20.f;
 
 	//
 	// skip sampling if this is a light source
@@ -113,28 +111,26 @@ Vec Renderer::trace(Ray const& ray, unsigned int depth, bool seeLight)
 		return seeLight ? mat->getEmittance() : Vec(0,0,0);
 	}
 
-
-	Vec out, value, e;
-	const float invsppf = 1.f / static_cast<float>(m_params.samplesPerPixel);
-	bool nextSeeLight = true;
-	float sampleX = frand(0,1);
-	float sampleY = frand(0,1);
-
-	//
-	// Get the BSDF for the sampled material
-	//
-	BSDF const* bsdf = mat->getBSDF();
 	
-	//
-	// Sample texture at intersection point
-	//
-	Vec color = mat->getTexture()->sample(isect.u, isect.v);
+	//===========================================
+	// Texture sampling
+	Vec texture_color = isect.texture->sample(isect.u, isect.v);
 
-	//
-	// Sample the BSDF at the intersection point
-	//
-	bool specular;
-	value = bsdf->sample(isect.N, -ray.D, color, sampleX, sampleY, out, specular);
+
+	//===========================================
+	// BSDF sampling
+
+	Vec bsdf_out_direction;
+	BSDFReflType bsdf_out_type;
+	unsigned int bsdf_num_samples;
+
+	bsdf_num_samples = isect.bsdf->getNumSamples();
+	Vec bsdf_color = isect.bsdf->sample(-ray.D, isect.N, texture_color, bsdf_out_direction, bsdf_out_type);
+
+	//===========================================
+	// Transform output direction to world space
+	out_direction = 
+
 	
 	if (specular) {	
 		//

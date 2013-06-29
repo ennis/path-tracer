@@ -120,7 +120,7 @@ void work()
 	GeometricPrimitive const* wallDown = createPlane(Point(0.f, -2.f, 0.f), Vec(0.f, 1.f, 0.f), diffuseWallDownMat);
 	GeometricPrimitive const* lightSource = createSphere(Point(0.f, 10.f, 2.f), 3.f, lightMat);
 
-	Geometry const* ellipsoidGeom = new Sphere(scale(Vec(1.35f, 1.15f, 1.f)), 1.f);
+	Geometry const* ellipsoidGeom = new Sphere(scale(Vec(1.0f, 1.0f, 1.0f)), 1.f);
 	GeometricPrimitive const* ellipsoid = new GeometricPrimitive(ellipsoidGeom, sphereMat);
 
 	std::vector<Primitive const*> scene;

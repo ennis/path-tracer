@@ -18,9 +18,6 @@ public:
 	~Material()
 	{}
 
-	Texture const* getTexture() const {
-		return m_texture;
-	}
 
 	Vec const& getEmittance() const {
 		return m_emittance;
@@ -35,7 +32,6 @@ public:
 	}
 
 private:
-	Texture const* m_texture;
 	Vec m_emittance;
 	bool m_isLightSource;
 	// TODO multiple BSDFs
