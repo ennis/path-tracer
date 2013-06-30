@@ -20,14 +20,14 @@ struct Transform
 
 static const Transform identityT = Transform();
 
-Vec transformVec(Transform const& T, Vec const& v);
-Vec invTransformVec(Transform const& T, Vec const& v);
-Ray transformRay(Transform const& T, Ray const& r);
-Ray invTransformRay(Transform const& T, Ray const& r);
-Point transformPoint(Transform const& T, Point const& p);
-Point invTransformPoint(Transform const& T, Point const& p);
-Vec transformNormal(Transform const& T, Vec const& n);
-Vec invTransformNormal(Transform const& T, Vec const& n);
+Vec   transform(Transform const& T, Vec const& v);
+Ray   transform(Transform const& T, Ray const& r);
+Point transform(Transform const& T, Point const& p);
+Vec   invTransform(Transform const& T, Vec const& v);
+Ray   invTransform(Transform const& T, Ray const& r);
+Point invTransform(Transform const& T, Point const& p);
+Vec   transformNormal(Transform const& T, Vec const& n);
+Vec   invTransformNormal(Transform const& T, Vec const& n);
 
 static inline Transform operator*(Transform const& t1, Transform const& t2) 
 {

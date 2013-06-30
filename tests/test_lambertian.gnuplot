@@ -1,0 +1,1 @@
+plot 'lambertian_slice.dat' using ($2*sin($1)):($2*cos($1))

@@ -3,6 +3,11 @@
 #include "util.hpp"
 #include <cmath>
 
+Vec perfectSpecularReflection(Vec const& I)
+{
+	return I * Vec(-1.f, -1.f, 1.f);
+}
+
 Vec reflectedRay(Vec const& N, Vec const& I)
 {
   Vec O = 2*N*dot(I, N) - I;

@@ -15,7 +15,6 @@ Vec specularRay(Vec const& N, Vec const& I, float specular, bool& bounce);
 Vec uniformRandomRay(Vec const& N);
 Vec halfway(Vec const& in, Vec const& out);
 
-Vec sampleCosineWeightedRay(Vec const& N, float sampleX, float sampleY);
-Vec sampleUniformRandomRay(Vec const& N, float sampleX, float sampleY);
-Vec sampleSpecularRay(Vec const& N, Vec const& I, float specCoef, float sampleX, float sampleY);
-
+Vec cosineSampleHemisphere();
+Vec uniformSampleHemisphere();
+Vec perfectSpecularReflection(Vec const& I);
