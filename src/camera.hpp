@@ -9,7 +9,12 @@ public:
 	Camera() 
 	{}
 	
-	Camera(Point const& eye, Point const& lookAt, float width, float height, float screenDist = 1.f, Vec const& up = Vec(0,1,0)) : 
+	Camera(Point const& eye, 
+			Point const& lookAt, 
+			float width, 
+			float height, 
+			float screenDist = 1.f,
+			Vec const& up = Vec(0,1,0)) : 
 		m_eye(eye),
 		m_lookAt(lookAt),
 		m_up(up),

@@ -5,11 +5,18 @@
 #include "primitive.hpp"
 #include "vec.hpp"
 
+//==================================
+// Scene
 class Scene
 {
 public:
-	Scene() {}
-	~Scene() {}
+	Scene() : 
+		m_ambient(Vec()), 
+		m_camera(NULL) 
+	{}
+
+	~Scene()
+	{}
 
 	void add(Primitive const* primitive) {
 		m_primitives.push_back(primitive);
@@ -24,7 +31,9 @@ public:
 		Intersection tmp_isect;
 		isect->dist = INFINITE;
 		bool hit = false;
-		for (std::vector<Primitive const*>::const_iterator p = scene.cbegin(); p != scene.cend(); ++p)
+		for (std::vector<Primitive const*>::const_iterator p = 
+				m_primitives->cbegin(); 
+			p != m_primitives->cend(); ++p)
 		{
 			if ((*p)->intersect(ray, &tmp_isect)) {
 				// confirmed hit
@@ -52,7 +61,6 @@ public:
 	Camera const *getCamera() const {
 		return m_camera;
 	}
-
 
 private:
 	// Ambient color (TODO textures, envmaps, sun & sky models)

@@ -10,11 +10,11 @@
 class Primitive;
 
 //==================================
-// LocalGeometry
+// Intersection
 struct Intersection
 {
 	// Material at hit point
-	BxDF const *bxdf;
+	Material const *material;
 	// Texture object
 	Texture const *texture;
 	// Local geometry
@@ -26,12 +26,7 @@ struct Intersection
 class Primitive
 {
 public:
-	Primitive(Transform const *transform = NULL,
-				Texture const *texture = NULL,
-				Material const *material = NULL) : 
-	m_texture(texture),
-	m_material(material),
-	m_transform(transform)
+	Primitive()
 	{}
 
 	virtual ~Primitive()
@@ -60,12 +55,12 @@ public:
 			float radius, 
 			Transform const *transform, 
 			Texture const *texture,
-			Material const *material) :
+			BxDF const *bxdf) :
 	m_center(center)
 	m_radius(radius),
 	m_transform(transform),
 	m_texture(texture),
-	m_material(material)
+	m_bxdf(bxdf)
 	{
 		m_aabb = AABB(Point(-radius, -radius, -radius), 
 						Point(radius, radius, radius)));
@@ -99,7 +94,7 @@ protected:
 	AABB m_aabb;
 	Transform const *m_transform;
 	Texture const *m_texture;
-	Material const *m_material;
+	BxDF const *m_bxdf;
 };
 
 #endif

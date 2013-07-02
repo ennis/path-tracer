@@ -9,34 +9,25 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
 
-#include "sphere.hpp"
 #include "vec.hpp"
 #include "ray.hpp"
-#include "matrix4x4.hpp"
 #include "camera.hpp"
-#include "renderer.hpp"
-#include "plane.hpp"
-#include "triangle.hpp"
-#include "glass.hpp"
-#include "diffuse.hpp"
-#include "mirror.hpp"
-#include "specular.hpp"
-#include "schlick.hpp"
-#include "phong.hpp"
-#include "ashikhmin_shirley.hpp"
+#include "path.hpp"
+#include "primitive.hpp"
 
 using namespace std;
 
 static const unsigned int XRES = 640;
 static const unsigned int YRES = 480;
-static const float ASPECT_RATIO = static_cast<float>(XRES)/static_cast<float>(YRES);
+static const float ASPECT_RATIO = 
+	static_cast<float>(XRES) / static_cast<float>(YRES);
 
 sf::Texture texture;
 Film *film;
-Renderer *renderer;
+Renderer renderer;
 RenderParameters renderParameters;
 
-template<typename T>
+template <typename T>
 T clamp(T v, T min, T max)
 {
 	return (v < min) ? min : ((v > max) ? max : v);
@@ -46,6 +37,7 @@ T clamp(T v, T min, T max)
 // Render thread
 void work()
 {	
+	// render parameters
 	renderParameters.samplesPerPixel = 50;
 	renderParameters.maxDepth = 8;
 	renderParameters.supersampling = true;
@@ -56,23 +48,59 @@ void work()
 	renderParameters.pixelHeight = YRES;
 	renderParameters.progressive = true;
 
+	// BSDFs
+	LambertianBRDF lambertian;
+
+	// Textures
+	CheckerboardTexture checkerboard(
+		Vec(0.1f, 0.1f, 0.05f), 
+		Vec(1.f, 1.f, 1.f),
+		1.f,
+		1.f);
+
+	// Primitives
+	Sphere S(
+		Vec(0.f, 0.f, 0.f),
+		1.f,
+		NULL,
+		&checkerboard,
+		&lambertian);
+
+	// Camera
+	Camera camera(
+		Point(0.f, 2.f, -4.5f), 
+		Point(0.f, 0.f, 0.f),
+		ASPECT_RATIO, 
+		1.f);
+
+	// Scene
+	Scene scene;
+	scene.setCamera(&camera);
+	scene.add(&S);
+
+	// Render
+	renderer.render(scene, renderParameters, *film);
 
 }
 
+//===============================
+// main
 int main(int argc, char ** argv)
 {
 	//
 	// Create render window
 	//
-	sf::RenderWindow window(sf::VideoMode(XRES, YRES), 
-							"SFML OpenGL", 
-							sf::Style::Default, 
-							sf::ContextSettings(32, 0, 8));
+	sf::RenderWindow window(
+		sf::VideoMode(XRES, YRES), 
+		"SFML OpenGL", 
+		sf::Style::Default, 
+		sf::ContextSettings(32, 0, 8));
 	
 	//
 	// Rectangle to draw the image into
 	//
-	sf::RectangleShape drawRect(sf::Vector2f(static_cast<float>(XRES), static_cast<float>(YRES)));
+	sf::RectangleShape drawRect(
+		sf::Vector2f(static_cast<float>(XRES), static_cast<float>(YRES)));
 
 	//
 	// Bind the texture
@@ -81,10 +109,8 @@ int main(int argc, char ** argv)
 	drawRect.setTexture(&texture);
 
 	film = new Film(XRES, YRES);
-	renderer = new Renderer;
 	uint32_t *textureData = new uint32_t[XRES*YRES];
 
-	
 	sf::Clock clock;	// clock to measure SPS
 	long delta = 0;
 	unsigned int samplesPerSecond = 0;
@@ -96,16 +122,16 @@ int main(int argc, char ** argv)
 		return EXIT_FAILURE;
 	}
 
-	sf::Text sps_text;
-	sps_text.setFont(font);
-	sps_text.setColor(sf::Color(255, 255, 255, 255));
-	sps_text.setPosition(10.f, 38.f);
+	sf::Text spsText;
+	spsText.setFont(font);
+	spsText.setColor(sf::Color(255, 255, 255, 255));
+	spsText.setPosition(10.f, 38.f);
 	
-	sf::Text samples_text;
-	samples_text.setFont(font);
-	samples_text.setColor(sf::Color(255, 255, 255, 255));
-	samples_text.setPosition(10.f, 10.f);
-	
+	sf::Text samplesText;
+	samplesText.setFont(font);
+	samplesText.setColor(sf::Color(255, 255, 255, 255));
+	samplesText.setPosition(10.f, 10.f);
+
 	//
 	// launch render thread
 	//
@@ -125,23 +151,23 @@ int main(int argc, char ** argv)
 			//
             if (event.type == sf::Event::Closed) {
                 window.close();
-				if (renderer->getParameters().progressive) {
-					renderer->stopProgressive();
+				if (renderParameters.progressive) {
+					renderer.stop();
 				}
 				break;
 			}
 			else if (event.type == sf::Event::KeyPressed) {
 				if (event.key.code == sf::Keyboard::Escape) {
 					window.close();
-					if (renderer->getParameters().progressive) {
-						renderer->stopProgressive();
+					if (renderParameters.progressive) {
+						renderer.stop();
 					}
 					break;
 				}
 			}
 		}
 
-		if (renderer->isStarted())
+		if (renderer.isStarted())
 		{
 
 			//
@@ -150,23 +176,23 @@ int main(int argc, char ** argv)
 			window.clear(sf::Color::Red);
 			window.draw(drawRect);
 
-			if (!renderer->isFinished()) {
+			if (!renderer.isFinished()) {
 				//
 				// Draw text
 				//
-				if (renderer->getParameters().progressive) {
+				if (renderParameters.progressive) {
 					std::stringstream ss;
-					ss << renderer->getNumFrames();
-					samples_text.setString(ss.str());
-					window.draw(samples_text);
+					ss << renderer.getNumFrames();
+					samplesText.setString(ss.str());
+					window.draw(samplesText);
 				}
 
 				if (delta != 0) {
 					std::stringstream ss;
 					ss << samplesPerSecond;
 					ss << " SPS";
-					sps_text.setString(ss.str());
-					window.draw(sps_text);
+					spsText.setString(ss.str());
+					window.draw(spsText);
 				}
 			}
 		
@@ -176,7 +202,7 @@ int main(int argc, char ** argv)
 			window.display();
 
 			
-			if (!renderer->isFinished()) {
+			if (!renderer.isFinished()) {
 				//
 				// update texture every 250ms
 				//
@@ -185,7 +211,7 @@ int main(int argc, char ** argv)
 				{
 					film->convertToRGB(textureData);
 					texture.update((sf::Uint8*)textureData, XRES, YRES, 0, 0);
-					unsigned int curSamples = renderer->getNumSamples();
+					unsigned int curSamples = renderer.getNumSamples();
 					samplesPerSecond = (curSamples - lastSamples)*1000/delta;
 					lastSamples = curSamples;
 					clock.restart();
@@ -205,10 +231,9 @@ int main(int argc, char ** argv)
 	//
 	// Save image to output_<random>.png
 	//
-	std::stringstream file_name("output_");
-	file_name << "output_" << time(NULL) << ".png";
-	std::string str = file_name.str();
-
+	std::stringstream renderFileName("output_");
+	renderFileName << "output_" << time(NULL) << ".png";
+	std::string str = renderFileName.str();
 	std::clog << "\nSaving image to " << str.c_str() << "...";
 	texture.copyToImage().saveToFile(str.c_str());
 	std::clog << "Done\n";
@@ -218,7 +243,6 @@ int main(int argc, char ** argv)
 	//
 	delete[] textureData;
 	delete film;
-	delete renderer;
 
 	return 0;
 }
