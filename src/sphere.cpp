@@ -1,22 +1,26 @@
 #include "sphere.hpp"
+#include "geometry.hpp"
 #include <iostream>
 
-bool Sphere::intersect(Ray const& ray, Intersection* isect) const
+/*
+ * Ray in object space
+ *
+ */ 
+bool raySphereIntersection(Ray const& R, LocalGeometry& localGeom)
 {
-	// Ray in object space
-	Vec RO = ray.O - Point(0,0,0);
+	Vec RO = R.O - Point(0,0,0);
 
 	float dist;
 
 	// Compute A, B and C coefficients
 	float a = 1.f;
-	float b = 2 * dot(ray.D, RO);
+	float b = 2 * dot(R.D, RO);
 	float c = dot(RO, RO) - (m_radius * m_radius);
 	//std::clog << a << ' ' << b << ' ' << c << std::endl;
 	// Find discriminant
 	float disc = b*b - 4*a*c;
 	// if discriminant is negative there are no real roots, so return 
-	// false as ray misses sphere
+	// false as R misses sphere
 	if (disc < EPSILON) 
 		return false;
 	//std::clog << disc << std::endl;
@@ -33,14 +37,14 @@ bool Sphere::intersect(Ray const& ray, Intersection* isect) const
 		dist = t0;
 	}
 
-	isect->P = ray.O + dist*ray.D;
-	isect->N = (isect->P - Point(0,0,0)).normalized();
-	isect->dist = dist;
-	isect->geometry = this;
+	localGeom.P = R.O + dist * R.D;
+	localGeom.N = (localGeom.P - Point(0,0,0)).normalized();
+	localGeom.dist = dist;
+	localGeom.geometry = this;
 
 	// u,v coords
-	isect->u = 0.5f + atan2f(isect->N.z(), isect->N.x()) / (2 * M_PI);
-	isect->v = 0.5f + 2.f * asinf(isect->N.y()) / (2 * M_PI);
+	localGeom.u = 0.5f + atan2f(localGeom.N.z(), localGeom.N.x()) / (2 * M_PI);
+	localGeom.v = 0.5f + 2.f * asinf(localGeom.N.y()) / (2 * M_PI);
 
 	return true;
 }

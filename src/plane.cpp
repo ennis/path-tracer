@@ -2,12 +2,12 @@
 #include <iostream>
 #include <cmath>
 
-bool rayPlaneIntersection(Ray const& ray, Vec const& normal, Point const& point, float& dist)
+bool rayPlaneIntersection(Ray const& R, Vec const& N, Vec const& P, LocalGeometry& localGeom)
 {
-	if (fabs(dot(ray.D, normal)) < EPSILON) {
+	if (fabs(dot(R.D, N)) < EPSILON) {
 		return false;
 	} else {
-		dist = dot(point - ray.O, normal) / dot(ray.D, normal);
+		dist = dot(P - R.O, N) / dot(R.D, N);
 		if (dist < EPSILON) {
 			return false;
 		}

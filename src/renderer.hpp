@@ -26,7 +26,6 @@ struct RenderParameters
 	bool progressive;
 };
 
-uint32_t mapRGB(Vec const& c);
 
 struct ProgressivePixel
 {
@@ -89,19 +88,18 @@ private:
 	unsigned int m_pixelWidth, m_pixelHeight;
 };
 
-bool findIntersection(std::vector<Primitive const*> const& scene, Ray const& ray, Intersection *isect, Material const** mat);
-
 class Renderer
 {
 public:
 	Renderer() : 
-		m_params(), m_camera(NULL), m_ambient(Vec()), 
-		m_scene(NULL), m_lightSources(NULL), m_samples(0), m_frames(0),
-		m_lines(0), m_started(false), m_finished(false)
+		m_params(), m_scene(NULL),
+		m_samples(0), m_frames(0), m_lines(0), 
+		m_started(false), m_finished(false)
 	{}
 
-
-	void render(RenderParameters const& params, Camera const& camera, std::vector<Primitive const*> const& scene, Film& out_film);
+	void render(Scene const& scene,
+				RenderParameters const& renderParameters, 
+				Film& film);
 	
 	bool isStarted() const {
 		return m_started;
@@ -119,10 +117,6 @@ public:
 		return m_frames;
 	}
 
-	RenderParameters const& getParameters() const {
-		return m_params;
-	}
-
 	void stopProgressive() {
 		m_finished = true;
 	}
@@ -130,20 +124,15 @@ public:
 private:
 
 	// private methods
-
-	void renderProgressive(Film& out_film);
-	void renderScanline(Film& out_film);
-
-	Vec evaluateDirectLighting(Intersection const& isect, Vec const& in, Vec const& color, BSDF const* bsdf);
+	void renderProgressive();
+	void renderScanline();
 	Vec samplePixel(float x, float y);
 	Vec samplePixelProgressive(float x, float y);
 	Vec trace(Ray const& ray, unsigned int depth, bool seeLight = true);
+	//Vec evaluateDirectLighting(Intersection const& isect, Vec const& in, Vec const& color, BSDF const* bsdf);
 
-	RenderParameters m_params;
-	Camera const * m_camera;
-	Vec m_ambient;
-	std::vector<Primitive const*> const * m_scene;
-	std::vector<Primitive const*> const * m_lightSources;
+	RenderParameters *m_params;
+	Scene *m_scene;
 
 	unsigned int m_samples;
 	unsigned int m_frames;

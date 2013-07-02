@@ -34,6 +34,7 @@ static const float ASPECT_RATIO = static_cast<float>(XRES)/static_cast<float>(YR
 sf::Texture texture;
 Film *film;
 Renderer *renderer;
+RenderParameters renderParameters;
 
 template<typename T>
 T clamp(T v, T min, T max)
@@ -41,94 +42,21 @@ T clamp(T v, T min, T max)
 	return (v < min) ? min : ((v > max) ? max : v);
 }
 
-//
-// Basic primitives
-//
-//
-//
-GeometricPrimitive* createSphere(Point const& pos, float radius, Material const* mat)
-{
-	return new GeometricPrimitive(new Sphere(translate(pos), radius), mat);
-}
-
-GeometricPrimitive* createPlane(Point const& pos, Vec const& normal, Material const* mat)
-{
-	return new GeometricPrimitive(new Plane(normal, pos), mat);
-}
-
-//
-// Materials
-//
-//
-Material const* createGlassMaterial(float refractionIndex, Vec const& surfaceColor)
-{
-	return new Material(new ColorTexture(surfaceColor), nullVec, false, new GlassBSDF(refractionIndex));
-}
-
-Material const* createMirrorMaterial(Vec const& surfaceColor)
-{
-	return new Material(new ColorTexture(surfaceColor), nullVec, false, new MirrorBSDF());
-}
-
-Material const* createDiffuseMaterial(Vec const& surfaceColor)
-{
-	return new Material(new ColorTexture(surfaceColor), nullVec, false, new DiffuseBSDF());
-}
-
-Material const* createGlossyMaterial(Vec const& surfaceColor, float R0)
-{
-	return new Material(new ColorTexture(surfaceColor), nullVec, false, new SchlickBSDF(R0));
-}
-
-Material const* createLightMaterial(Vec const& emittance) 
-{
-	return new Material(new ColorTexture(nullVec), emittance, true, new DiffuseBSDF());
-}
-
-
-//
+//===============================
 // Render thread
-//
-//
 void work()
 {	
-	RenderParameters params;
-	params.samplesPerPixel = 50;
-	params.maxDepth = 8;
-	params.supersampling = true;
-	params.cosineWeightedSampling = false;
-	params.directLightingOnly = false;
-	params.explicitLightSampling = true;
-	params.pixelWidth = XRES;
-	params.pixelHeight = YRES;
-	params.progressive = true;
+	renderParameters.samplesPerPixel = 50;
+	renderParameters.maxDepth = 8;
+	renderParameters.supersampling = true;
+	renderParameters.cosineWeightedSampling = false;
+	renderParameters.directLightingOnly = false;
+	renderParameters.explicitLightSampling = true;
+	renderParameters.pixelWidth = XRES;
+	renderParameters.pixelHeight = YRES;
+	renderParameters.progressive = true;
 
-	Camera cam(Point(0.f, 2.f, -4.5f), Point(0.f, 0.f, 0.f), ASPECT_RATIO, 1.f);
 
-	Material const* glass110 = createGlassMaterial(1.10f, Vec(1.f, 1.f, 1.f));
-	Material const* mirror = createMirrorMaterial(Vec(1.f, 1.f, 1.f));
-	Material const* greenDiffuse = createDiffuseMaterial(Vec(0.f, 1.f, 0.f));
-	Material const* greenSchlickMat = createGlossyMaterial(Vec(0.2f, 1.f, 0.7f), 0.2f);
-	//Material const* diffuseWallDownMat = createDiffuseMaterial(Vec(0.2f, 0.9f, 0.2f));
-	Material const* lightMat = createLightMaterial(Vec(10.f, 10.f, 8.f));
-
-	Texture const* checkerboard = new CheckerboardTexture(Vec(0.f, 0.f, 0.f), Vec(1.0f, 1.0f, 1.0f), 1.f, 1.f);
-	Material const* diffuseWallDownMat = new Material(checkerboard, nullVec, false, new DiffuseBSDF());
-	Material const* sphereMat = new Material(new ColorTexture(Vec(1.f, 1.f, 0.5f)), nullVec, false, new SchlickBSDF(0.10f));
-
-	GeometricPrimitive const* sphere = createSphere(Point(0.f, 0.f, 1.f), 1.f, glass110);
-	GeometricPrimitive const* wallDown = createPlane(Point(0.f, -2.f, 0.f), Vec(0.f, 1.f, 0.f), diffuseWallDownMat);
-	GeometricPrimitive const* lightSource = createSphere(Point(0.f, 10.f, 2.f), 3.f, lightMat);
-
-	Geometry const* ellipsoidGeom = new Sphere(scale(Vec(1.0f, 1.0f, 1.0f)), 1.f);
-	GeometricPrimitive const* ellipsoid = new GeometricPrimitive(ellipsoidGeom, sphereMat);
-
-	std::vector<Primitive const*> scene;
-	scene.push_back(ellipsoid);
-	scene.push_back(wallDown);
-	scene.push_back(lightSource);
-
-	renderer->render(params, cam, scene, *film);
 }
 
 int main(int argc, char ** argv)

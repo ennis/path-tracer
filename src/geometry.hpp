@@ -1,24 +1,36 @@
 #pragma once
 #include "vec.hpp"
-#include "transform.hpp"
-#include "bbox.hpp"
-#include "intersection.hpp"
-#include "localgeom.hpp"
 
-class Geometry
+class Primitive;
+
+//==================================
+// LocalGeometry
+struct LocalGeometry
 {
-public:
-	Geometry()
-	{}
-
-	// Ray in object space
-	virtual bool intersect(Ray const& ray, Intersection* isect) const = 0;
-
-	virtual AABB getAABB() const {
-		return AABB();
-	}
-
-
-protected:
+	// primitive at hit point
+	Primitive const *primitive;
+	// hit point
+	Point P;
+	// Local base
+	Vec N, T, S;
+	// Texture coordinates
+	float u, v;
 };
 
+static inline Vec worldToLocal(
+					LocalGeometry const& localGeom, 
+					Vec const& VW)
+{
+	return Vec(dot(localGeom.T,VW), 
+				dot(localGeom.S,VW),
+				dot(localGeom.N,VW));
+}
+
+static inline Vec localToWorld(
+					LocalGeometry const& localGeom,
+					Vec const& VL)
+{
+	return VL.x() * localGeom.T + 
+			VL.y() * localGeom.S +
+			VL.z() * localGeom.N;
+}
