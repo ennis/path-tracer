@@ -33,9 +33,9 @@ struct AABB
 bool rayAABBIntersect(Ray const& ray, AABB const& aabb, float& near, float& far);
 
 static inline AABB transformAABB(Transform const& T, AABB const& aabb) {
-	return AABB(transformPoint(T, aabb.m_lowerleft), transformPoint(T, aabb.m_upperright));
+	return AABB(transform(T, aabb.m_lowerleft), transform(T, aabb.m_upperright));
 }
 
 static inline AABB invTransformAABB(Transform const& T, AABB const& aabb) {
-	return AABB(invTransformPoint(T, aabb.m_lowerleft), invTransformPoint(T, aabb.m_upperright));
+	return AABB(invTransform(T, aabb.m_lowerleft), invTransform(T, aabb.m_upperright));
 }

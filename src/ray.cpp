@@ -71,17 +71,12 @@ Vec sampleUniformRandomRay(Vec const& N, float sampleX, float sampleY)
 	return Vt;
 }
 
-
-Vec sampleSpecularRay(Vec const& N, Vec const& I, float specCoef, float sampleX, float sampleY)
+Vec cosinePowerSampleHemisphere(float exp)
 {
-	Vec R = reflectedRay(N, I);
-	Vec T, S;
-	genOrtho(R, T, S);
-
-	float sr2 = sqrt(1-pow(sampleY, 2/(specCoef+1)));
-	float phi = sampleX * 2.0f * M_PI;
-	Vec Vt = sr2*cos(phi) * T + sr2*sin(phi) * S + pow(sampleY, 1/(specCoef+1)) * R;
-	return Vt;
+	float sample = frand(0.f,1.f);
+	float phi = frand(0.f, 2.0f * M_PI);
+	float sr2 = sqrt(1 - pow(sample, 2 / (exp + 1)));
+	return Vec(sr2 * cos(phi), sr2 * sin(phi), pow(sample, 1 / (exp + 1)));
 }
 
 Vec halfway(Vec const& Wi, Vec const& Wo)

@@ -14,6 +14,8 @@
 #include "camera.hpp"
 #include "path.hpp"
 #include "primitive.hpp"
+#include "scene.hpp"
+#include "mesh.hpp"
 
 using namespace std;
 
@@ -24,7 +26,7 @@ static const float ASPECT_RATIO =
 
 sf::Texture texture;
 Film *film;
-Renderer renderer;
+PathRenderer renderer;
 RenderParameters renderParameters;
 
 template <typename T>
@@ -50,25 +52,74 @@ void work()
 
 	// BSDFs
 	LambertianBRDF lambertian;
+	MirrorBRDF mirror(0.5f);
+	PhongBRDF phong1000(10000, Vec(1.f, 1.f, 1.f));
+	PhongBRDF phong100(100, Vec(1.f, 1.f, 1.f));
+
+	// Environment map
+	EnvironmentMap glacier;
+	glacier.loadFromFile("uffizi-large.hdr", 2.f);
+
 
 	// Textures
 	CheckerboardTexture checkerboard(
 		Vec(0.1f, 0.1f, 0.05f), 
 		Vec(1.f, 1.f, 1.f),
-		1.f,
-		1.f);
+		0.5f,
+		0.5f);
+
+	ColorTexture redTexture(Vec(0.9f, 0.15f, 0.05f));
+	ColorTexture white(Vec(1.f, 1.f, 1.f));
+	ColorTexture blue(Vec(0.2f, 0.4f, 1.f));
 
 	// Primitives
 	Sphere S(
-		Vec(0.f, 0.f, 0.f),
+		Point(0.f, 0.f, 0.f),
+		0.5f,
+		NULL,
+		NULL,
+		&lambertian,
+		Vec(0.f, 0.f, 0.f));
+	
+	Sphere S2(
+		Point(1.f, 1.f, 0.5f),
 		1.f,
 		NULL,
-		&checkerboard,
-		&lambertian);
+		&white,
+		&phong1000,
+		Vec(0.f, 0.f, 0.f));
+
+	
+	Sphere SL(
+		Point(0.f, 8.f, 0.f),
+		5.f,
+		NULL,
+		NULL,
+		&lambertian,
+		Vec(4.f, 4.f, 4.f));
+
+
+	Plane P(
+		Point(0.f, -2.f, 0.f),
+		Vec(0.f,1.f,0.f),
+		NULL,
+		&redTexture,
+		&lambertian,
+		Vec(0.f, 0.f, 0.f));
+
+	
+	// Meshes
+	Mesh mesh(
+		NULL,
+		&blue,
+		&phong1000,
+		Vec(0.f, 0.f, 0.f));
+	mesh.loadFromFile("cube.obj");
 
 	// Camera
+	// TODO debug screenDist
 	Camera camera(
-		Point(0.f, 2.f, -4.5f), 
+		Point(2.f, -1.f, -2.5f), 
 		Point(0.f, 0.f, 0.f),
 		ASPECT_RATIO, 
 		1.f);
@@ -76,10 +127,15 @@ void work()
 	// Scene
 	Scene scene;
 	scene.setCamera(&camera);
-	scene.add(&S);
+	scene.setAmbient(Vec(0.8f, 0.8f, 1.0f));
+	scene.setEnvironmentMap(&glacier);
+	scene.add(&mesh);
+	//scene.add(&S2);
+	//scene.add(&SL);
+	//scene.add(&P);
 
 	// Render
-	renderer.render(scene, renderParameters, *film);
+	renderer.render(scene, *film, renderParameters);
 
 }
 

@@ -1,10 +1,10 @@
+#include <iostream>
+#include <cassert>
+#include <iomanip>
+
 #include "path.hpp"
 #include "util.hpp"
-#include "sphere.hpp"
 #include "primitive.hpp"
-#include "intersection.hpp"
-#include <iostream>
-#include <iomanip>
 
 // x9 supersampling
 static const unsigned int NUM_SUPERSAMPLES = 9;
@@ -89,75 +89,89 @@ static float ssdisp[9][2] = {
 // isect -> texture sampling  ..........-> blend -> RETURN
 //       -> material sampling -> trace..
 
-Vec PathRenderer::trace(Ray const& ray, unsigned int depth, bool seeLight)
+Vec PathRenderer::trace(Ray const& R, unsigned int depth, bool seeLight)
 {
 	// Stop tracing when the maximum depth is reached
 	if (depth >= m_params->maxDepth) {
-    	return m_ambient;
+		return m_scene->getAmbient();
 	}
 
 	Intersection isect;
+	EnvironmentMap const *envmap = m_scene->getEnvironmentMap();
 	
 	//===========================================
 	// find intersection
-	if (!scene->findIntersection(ray, &isect)) {
+	if (!m_scene->findIntersection(R, &isect)) {
 		// no intersection : return ambient color
 		// TODO environment maps
-		return m_ambient;
+		if (envmap) {
+			return envmap->eval(R.D);
+		} else {
+			return m_scene->getAmbient();
+		}
 	}
+
+	//if (depth > 0) {
+	//	std::clog << "Self intersection\n";
+	//}
+
+	Vec E = isect.primitive->getEmittance();
 
 	//
 	// skip sampling if this is a light source
 	//
-	if (mat->isLightSource()) {
-		return seeLight ? mat->getEmittance() : Vec(0,0,0);
+	if (!(E == nullVec)) {
+		return seeLight ? E : Vec(0,0,0);
 	}
 
 	
 	//===========================================
 	// Texture sampling
-	Vec texture_color = isect.texture->sample(isect.u, isect.v);
+	Texture const *texture = isect.primitive->getTexture();
+	Vec textureColor;
+	if (texture != NULL) {
+		textureColor = texture->sample(isect.u, isect.v);
+	} else {
+		// TODO missing texture
+		textureColor = Vec(0.f, 1.f, 0.f);
+	}
 
+	//===========================================
+	// world to local
+	Vec WoL = isect.worldToLocal(-R.D);
 
 	//===========================================
 	// BSDF sampling
+	Vec bxdfResult;
+	float pdfResult;
+	Vec WiL;
+	int bxdfType;
+	BxDF const *bxdf = isect.primitive->getBxDF();
 
-	Vec bsdf_out_direction;
-	BSDFReflType bsdf_out_type;
-	unsigned int bsdf_num_samples;
-
-	bsdf_num_samples = isect.bsdf->getNumSamples();
-	Vec bsdf_color = isect.bsdf->sample(-ray.D, isect.N, texture_color, bsdf_out_direction, bsdf_out_type);
+	if (bxdf != NULL) {
+		bxdf->sample(textureColor, WoL, WiL, bxdfResult, pdfResult, bxdfType);
+	} else {
+		// no BSDF, return texture color
+		return textureColor;
+	}
 
 	//===========================================
 	// Transform output direction to world space
-	out_direction = 
+	Vec Wi = isect.localToWorld(WiL); 
+	//std::clog << "WoL: " << WoL << "\nWo: " << Wo << "\n";
 
-	
-	if (specular) {	
+	//===========================================
+	// Continue path
+	bool nextSeeLight = true;
+	//if (bxdfType & BxDF_SPECULAR) {	
 		//
 		// Perfect specular reflection : do not evaluate the contribution of light sources 
-		//
-		return color*value*trace(Ray(isect.P, out), depth+1, nextSeeLight);
+		// 
+	return E + bxdfResult*trace(Ray(isect.P, Wi), depth+1, nextSeeLight);
 		// Note: value should be (1,1,1) 
-
-	} else {
-
-		//
-		// evaluate direct lighting
-		if (m_params.explicitLightSampling) {
-			nextSeeLight = false;
-			e = evaluateDirectLighting(isect, -ray.D, color, bsdf);
-		}
-		
-		if (m_params.directLightingOnly) {
-			// compute only direct lighting
-			return color*e;
-		}
-		else {
-			return color*(e + value*trace(Ray(isect.P, out), depth+1, nextSeeLight));
-		}
-	}
+	//} else {		
+	//	return E + textureColor*bxdfResult*trace(Ray(isect.P, Wo), depth+1, nextSeeLight);
+	//}
 }
 
 //===================================================
@@ -170,7 +184,7 @@ Vec PathRenderer::samplePixel(float x, float y)
 		float xrand = frand(-0.5, 0.5);
 		float yrand = frand(-0.5, 0.5);
 		sample = sample + trace(
-			m_scene->m_camera.rayThroughCameraPixel(
+			m_scene->getCamera()->rayThroughCameraPixel(
 				x + xrand, 
 				y + yrand, 
 				static_cast<float>(m_params->pixelWidth),
@@ -190,7 +204,7 @@ Vec PathRenderer::samplePixelProgressive(float x, float y)
 	float xrand = frand(-0.5, 0.5);
 	float yrand = frand(-0.5, 0.5);
 	return trace(
-		m_scene->m_camera.rayThroughCameraPixel(
+		m_scene->getCamera()->rayThroughCameraPixel(
 			x + xrand, 
 			y + yrand, 
 			m_params->pixelWidth,
@@ -210,7 +224,7 @@ void PathRenderer::render(
 	m_scene = &scene;
 	m_film = &film;
 	m_started = true;
-	if (params.progressive) {
+	if (m_params->progressive) {
 		renderProgressive();
 	} else {
 		renderScanline();

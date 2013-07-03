@@ -2,27 +2,27 @@
 #include "matrix4x4.hpp"
 
 
-Vec transformVec(Transform const& T, Vec const& v) {
+Vec transform(Transform const& T, Vec const& v) {
 	return MApply(T.m_t, v);
 }
 
-Vec invTransformVec(Transform const& T, Vec const& v) {
+Vec invTransform(Transform const& T, Vec const& v) {
 	return MApply(T.m_inv, v);
 }
 
-Ray transformRay(Transform const& T, Ray const& r) {
-	return Ray(transformPoint(T, r.O), transformVec(T, r.D));
+Ray transform(Transform const& T, Ray const& r) {
+	return Ray(transform(T, r.O), transform(T, r.D));
 }
 
-Ray invTransformRay(Transform const& T, Ray const& r) {
-	return Ray(invTransformPoint(T, r.O), invTransformVec(T, r.D));
+Ray invTransform(Transform const& T, Ray const& r) {
+	return Ray(invTransform(T, r.O), invTransform(T, r.D));
 }
 
-Point transformPoint(Transform const& T, Point const& p) {
+Point transform(Transform const& T, Point const& p) {
 	return MApplyPoint(T.m_t, p);
 }
 
-Point invTransformPoint(Transform const& T, Point const& p) {
+Point invTransform(Transform const& T, Point const& p) {
 	return MApplyPoint(T.m_inv, p);
 }
 

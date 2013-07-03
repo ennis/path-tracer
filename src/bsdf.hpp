@@ -1,5 +1,6 @@
 #pragma once
 #include "ray.hpp"
+#include "util.hpp"
 #include "vec.hpp"
 #include <iostream>
 
@@ -14,6 +15,7 @@ enum BxDFType
 	BxDF_GLOSSY
 };
 
+// TODO Unified material class
 class BxDF
 {
 public:
@@ -27,22 +29,22 @@ public:
 	 * sample
 	 * bxdfId: BxDF to sample (0..numComponents-1) or -1 to choose at random
 	 * color: sampled texture color
-	 * N: surface normal in world coordinates
-	 * Wi: incoming direction in world space
-	 * Wo: sampled direction in world space
+	 * N: surface normal in Wirld coordinates
+	 * Wo: incoming direction in Wirld space
+	 * Wi: sampled direction in Wirld space
 	 * bxdfResult: BSDF value 
 	 * bxdfType: type of the sampled BxDF
 	 */
-	virtual void sample(Vec const& color, Vec const& Wi, Vec& Wo, Vec& bxdfResult, float& pdfResult, int &bxdfType) const = 0;
+	virtual void sample(Vec const& color, Vec const& Wo, Vec& Wi, Vec& bxdfResult, float& pdfResult, int &bxdfType) const = 0;
 	/*
-	 * eval: evaluates the BSDF with given incoming and outgoing directions
+	 * eval: evaluates the BSDF Woth given incoming and outgoing directions
 	 * color: sampled texture color
-	 * Wi: incoming direction in world space
-	 * Wo: outgoing direction in world space
+	 * Wo: incoming direction in Wirld space
+	 * Wi: outgoing direction in Wirld space
 	 * bxdfResult: BSDF value 
 	 */
-	virtual void eval(Vec const& color, Vec const& Wi, Vec const& Wo, Vec& bxdfResult, float &pdfResult) const = 0;
-	//virtual float weight(Vec const& Wi) const = 0;
+	virtual void eval(Vec const& color, Vec const& Wo, Vec const& Wi, Vec& bxdfResult, float &pdfResult) const = 0;
+	//virtual float weight(Vec const& Wo) const = 0;
 
 	static inline float cosTheta(Vec const& W) {
 		return W.z();
@@ -51,29 +53,37 @@ public:
 private:
 };
 
+static inline float fresnelCoef(
+	Vec const& in, 
+	float R0)
+{
+	float c = 1 - in.z();
+	return R0 + (1-R0)*c*c*c*c*c;
+}
+
 //===================================
 // Mirrors
 class MirrorBRDF : public BxDF
 {
 public:
-	MirrorBRDF() {}
+	MirrorBRDF(float R0) : m_R0(R0) {}
 	~MirrorBRDF() {}
 
 	virtual void sample(Vec const& color,
-						Vec const& Wi, 
-						Vec& Wo, 
+						Vec const& Wo, 
+						Vec& Wi, 
 						Vec& bxdfResult,
 						float& pdfResult,
 						int& bxdfType) const 
 	{
-		bxdfResult = color;
 		pdfResult = 1.f;	// should be a dirac?
-		Wo = perfectSpecularReflection(Wi);
+		Wi = perfectSpecularReflection(Wo);
+		bxdfResult = color * fresnelCoef(Wi, m_R0);
 	}
 
 	virtual void eval(Vec const& color,
-					  Vec const& Wi, 
 					  Vec const& Wo, 
+					  Vec const& Wi, 
 					  Vec& bxdfResult,
 					  float& pdfResult) const 
 	{
@@ -82,6 +92,7 @@ public:
 	}
 
 private:
+	float m_R0;
 };
 
 //===================================
@@ -93,22 +104,22 @@ public:
 	~LambertianBRDF() {}
 
 	virtual void sample(Vec const& color,
-						Vec const& Wi, 
-						Vec& Wo, 
-						Vec& bxdfResult,
-						float& pdfResult,
-						int& bxdfType) const 
+		Vec const& Wo, 
+		Vec& Wi, 
+		Vec& bxdfResult,
+		float& pdfResult,
+		int& bxdfType) const 
 	{
-		bxdfResult = color * cosTheta(Wi);
 		pdfResult = 1.f;
-		Wo = cosineSampleHemisphere();
+		Wi = cosineSampleHemisphere();
+		bxdfResult = color * 1.f / M_PI;
 	}
 
 	virtual void eval(Vec const& color,
-					  Vec const& Wi, 
-					  Vec const& Wo, 
-					  Vec& bxdfResult,
-					  float& pdfResult) const 
+		Vec const& Wo, 
+		Vec const& Wi, 
+		Vec& bxdfResult,
+		float& pdfResult) const 
 	{
 		bxdfResult = color * cosTheta(Wi) * cosTheta(Wo);
 		pdfResult = 1.f;
@@ -129,27 +140,36 @@ public:
 	~PhongBRDF() {}
 
 	virtual void sample(Vec const& color,
-						Vec const& Wi, 
-						Vec& Wo, 
-						Vec& bxdfResult,
-						float& pdfResult,
-						int& bxdfType) const 
+		Vec const& Wo, 
+		Vec& Wi, 
+		Vec& bxdfResult,
+		float& pdfResult,
+		int& bxdfType) const 
 	{
-		pdfResult = 1.f;
-		Wo = cosineSampleHemisphere();
-		eval(color, Wi, Wo, bxdfResult, pdfResult);
+		Vec R = perfectSpecularReflection(Wo);
+		Vec T, S;
+		genOrtho(R, T, S);
+		Vec Rg = cosinePowerSampleHemisphere(m_phongExp);
+		Wi = Rg.x() * T + Rg.y() * S + Rg.z() * R;
+		if (Wi.z() < 0) {
+			Wi = - Rg.x() * T - Rg.y() * S + Rg.z() * R;
+		}
+		
+		bxdfResult = m_highlightsColor * /*powf(dot(R, Wi), m_phongExp) **/ fresnelCoef(Wi, 0.5f);
 		bxdfType = BxDF_REFLECTION | BxDF_GLOSSY;
+		// TODO PDFs
+		pdfResult = 1.f;
 	}
 
 	virtual void eval(Vec const& color,
-					  Vec const& Wi, 
-					  Vec const& Wo, 
-					  Vec& bxdfResult,
-					  float& pdfResult) const 
+		Vec const& Wo, 
+		Vec const& Wi, 
+		Vec& bxdfResult,
+		float& pdfResult) const 
 	{
-		Vec H = halfway(Wi, Wo);
-		bxdfResult = m_highlightsColor * powf(H.z(), m_phongExp);
+		Vec H = halfway(Wo, Wi);
 		pdfResult = 1.f;
+		bxdfResult = color * m_highlightsColor * powf(H.z(), m_phongExp) * cosTheta(Wo) * cosTheta(Wi);
 	}
 
 private:
@@ -193,8 +213,8 @@ public:
 	virtual void sample(int bxdfId, 
 						Vec const& color,
 						Vec const& N, 
-						Vec const& Wi, 
-						Vec& Wo, 
+						Vec const& Wo, 
+						Vec& Wi, 
 						Vec& bxdfResult, 
 						float& pdfResult, 
 						BxDFType& bxdfType) const 
@@ -205,7 +225,7 @@ public:
 			return;
 		}
 		bxdfId = simulateCdf(m_numBxdfs, m_cdf, m_cdf[m_numBxdfs-1]);
-		m_bxdfs[bxdfId]->sample(color, Wi, Wo, bxdfResult, pdfResult);
+		m_bxdfs[bxdfId]->sample(color, Wo, Wi, bxdfResult, pdfResult);
 		bxdfType = m_bxdfs[bxdfId]->type;
 	}
 

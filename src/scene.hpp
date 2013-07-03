@@ -4,6 +4,7 @@
 #include <vector>
 #include "primitive.hpp"
 #include "vec.hpp"
+#include "envmap.hpp"
 
 //==================================
 // Scene
@@ -12,7 +13,8 @@ class Scene
 public:
 	Scene() : 
 		m_ambient(Vec()), 
-		m_camera(NULL) 
+		m_camera(NULL),
+		m_envmap(NULL)
 	{}
 
 	~Scene()
@@ -23,21 +25,21 @@ public:
 	}
 
 	void remove(Primitive const* primitive) {
-		m_primitives.remove(primitive);
+		// TODO
 	}
 
-	bool findIntersection(Ray const& ray, Intersection *isect) {
-		static const float INFINITE = 1e30f;
+	bool findIntersection(Ray const& ray, Intersection *isect) const {
+		static const float inf = 1e30f;
 		Intersection tmp_isect;
-		isect->dist = INFINITE;
+		isect->t = inf;
 		bool hit = false;
 		for (std::vector<Primitive const*>::const_iterator p = 
-				m_primitives->cbegin(); 
-			p != m_primitives->cend(); ++p)
+				m_primitives.cbegin(); 
+			p != m_primitives.cend(); ++p)
 		{
-			if ((*p)->intersect(ray, &tmp_isect)) {
+			if ((*p)->intersect(ray, tmp_isect)) {
 				// confirmed hit
-				if (hit == false || tmp_isect.dist < isect->dist) {
+				if (hit == false || tmp_isect.t < isect->t) {
 					hit = true;
 					*isect = tmp_isect;
 				}
@@ -62,6 +64,14 @@ public:
 		return m_camera;
 	}
 
+	void setEnvironmentMap(EnvironmentMap const *envmap) {
+		m_envmap = envmap;
+	}
+
+	EnvironmentMap const *getEnvironmentMap() const {
+		return m_envmap;
+	}
+
 private:
 	// Ambient color (TODO textures, envmaps, sun & sky models)
 	Vec m_ambient;
@@ -69,6 +79,8 @@ private:
 	Camera const *m_camera;
 	// TODO BVH
 	std::vector<Primitive const*> m_primitives;
+	// Envmap (optional)
+	EnvironmentMap const *m_envmap;
 };
 
 #endif

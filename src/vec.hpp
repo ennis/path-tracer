@@ -4,6 +4,7 @@
 #include <cmath>
 #include "constants.hpp"
 
+// TODO make something more serious
 struct Vec
 {
 	/*Vec() : x(0), y(0), z(0) {}

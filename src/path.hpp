@@ -1,11 +1,14 @@
-#pragma once
+#ifndef PATH_HPP
+#define PATH_HPP
 #include <vector>
+#include <cstdint>
+#include <iostream>
+
 #include "camera.hpp"
 #include "vec.hpp"
 #include "ray.hpp"
 #include "primitive.hpp"
-#include <cstdint>
-#include <iostream>
+#include "scene.hpp"
 
 static const unsigned int DEFAULT_MAX_DEPTH = 5;
 static const unsigned int DEFAULT_SPP = 10;
@@ -36,7 +39,9 @@ struct ProgressivePixel
 class Film
 {
 public:
-	Film(unsigned int pixelWidth, unsigned int pixelHeight) : m_pixelWidth(pixelWidth), m_pixelHeight(pixelHeight)
+	Film(unsigned int pixelWidth, unsigned int pixelHeight) : 
+		m_pixelWidth(pixelWidth), 
+		m_pixelHeight(pixelHeight)
 	{
 		m_buffer = new ProgressivePixel[pixelWidth * pixelHeight];
 		for (unsigned int i = 0; i < pixelWidth * pixelHeight; ++i) {
@@ -74,8 +79,10 @@ public:
 		for (unsigned int x = 0; x < m_pixelWidth; ++x) {
 			for (unsigned int y = 0; y < m_pixelHeight; ++y) {
 				if (m_buffer[x + y*m_pixelWidth].numSamples != 0) {
-					out_image[x + y*m_pixelWidth] = mapRGB(m_buffer[x + y*m_pixelWidth].value / 
-								static_cast<float>(m_buffer[x + y*m_pixelWidth].numSamples));
+					out_image[x + y*m_pixelWidth] = mapRGB(
+						m_buffer[x + y*m_pixelWidth].value / 
+							static_cast<float>(
+								m_buffer[x + y*m_pixelWidth].numSamples));
 				} else {
 					out_image[x + y*m_pixelWidth] = mapRGB(Vec());
 				}
@@ -92,7 +99,7 @@ class PathRenderer
 {
 public:
 	PathRenderer() : 
-		m_params(), m_scene(NULL),
+		m_params(), m_scene(NULL), m_film(NULL),
 		m_samples(0), m_frames(0), m_lines(0), 
 		m_started(false), m_finished(false)
 	{}
@@ -131,8 +138,9 @@ private:
 	Vec trace(Ray const& ray, unsigned int depth, bool seeLight = true);
 	//Vec evaluateDirectLighting(Intersection const& isect, Vec const& in, Vec const& color, BSDF const* bsdf);
 
-	RenderParameters *m_params;
-	Scene *m_scene;
+	RenderParameters const *m_params;
+	Scene const *m_scene;
+	Film *m_film;
 
 	unsigned int m_samples;
 	unsigned int m_frames;
@@ -140,3 +148,5 @@ private:
 	bool m_started;
 	bool m_finished;
 };
+
+#endif
