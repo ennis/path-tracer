@@ -35,8 +35,7 @@ public:
 	virtual ~Mesh() 
 	{}
 
-	virtual bool intersect(Ray const& R, Intersection& isect) const
-	{
+	virtual bool intersect(Ray const& R, Intersection& isect) const {
 		static const float inf = 1e30f;
 		float dist;
 		float min_dist = inf;
@@ -63,8 +62,7 @@ public:
 		return true;
 	}
 
-	void loadFromFile(char const* fileName) 
-	{
+	void loadFromFile(char const* fileName) {
 		std::ifstream f;
 		f.open(fileName);
 		if (f.fail()) {
@@ -85,7 +83,7 @@ public:
 				ss.str(line.substr(2));
 				ss.seekg(0);
 				ss >> x >> y >> z;
-				//std::clog << "v " << x << ' ' << y << ' ' << z << '\n';
+				std::clog << "v " << x << ' ' << y << ' ' << z << '\n';
 				vertices.push_back(x);
 				vertices.push_back(y);
 				vertices.push_back(z);
@@ -94,7 +92,7 @@ public:
 				ss.str(line.substr(3));
 				ss.seekg(0);
 				ss >> x >> y >> z;
-				//std::clog << "vn " << x << ' ' << y << ' ' << z << '\n';
+				std::clog << "vn " << x << ' ' << y << ' ' << z << '\n';
 				normals.push_back(x);
 				normals.push_back(y);
 				normals.push_back(z);
@@ -105,7 +103,7 @@ public:
 				ss.seekg(0);
 				for (int i = 0; i < 3; ++i) {
 					int a, b, c;
-					ss >> a >> std::ws;
+					ss >> a;
 					if (ss.get() == '/') {
 						if (ss.peek() != '/') {
 							ss >> b;
@@ -118,9 +116,10 @@ public:
 					face.texCoords[i] = (b-1) * 2;
 					face.normals[i] = (c-1) * 3;
 				}
-				//std::clog << "f " << face.vertices[0] << '/' << face.texCoords[0] << '/' << face.normals[0] << ' ' <<
-				//	face.vertices[1] << '/' << face.texCoords[1] << '/' << face.normals[1] << ' ' <<
-				//	face.vertices[2] << '/' << face.texCoords[2] << '/' << face.normals[2] << '\n';
+				ss.clear();	// sh*t language
+				std::clog << "f " << face.vertices[0] << '/' << face.texCoords[0] << '/' << face.normals[0] << ' ' <<
+					face.vertices[1] << '/' << face.texCoords[1] << '/' << face.normals[1] << ' ' <<
+					face.vertices[2] << '/' << face.texCoords[2] << '/' << face.normals[2] << '\n';
 				faces.push_back(face);
 			} else {
 				// ignore
@@ -179,16 +178,18 @@ public:
 		return true;
 	}
 
-	Point getFaceVertex(int face, int i) const
-	{
+	Point getFaceVertex(int face, int i) const {
 		int base = faces[face].vertices[i];
 		return Point(vertices[base + 0], vertices[base + 1], vertices[base + 2]);
 	}
 	
-	Point getFaceNormal(int face, int i) const
-	{
+	Point getFaceNormal(int face, int i) const {
 		int base = faces[face].normals[i];
 		return Point(normals[base + 0], normals[base + 1], normals[base + 2]);
+	}
+	
+	virtual void sample(Point const& O, Intersection &isect, float &pdf) const {
+		// TODO
 	}
 
 private:

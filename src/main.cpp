@@ -44,7 +44,7 @@ void work()
 	renderParameters.maxDepth = 8;
 	renderParameters.supersampling = true;
 	renderParameters.cosineWeightedSampling = false;
-	renderParameters.directLightingOnly = false;
+	renderParameters.directLightingOnly = true;
 	renderParameters.explicitLightSampling = true;
 	renderParameters.pixelWidth = XRES;
 	renderParameters.pixelHeight = YRES;
@@ -60,7 +60,6 @@ void work()
 	EnvironmentMap glacier;
 	glacier.loadFromFile("uffizi-large.hdr", 2.f);
 
-
 	// Textures
 	CheckerboardTexture checkerboard(
 		Vec(0.1f, 0.1f, 0.05f), 
@@ -75,9 +74,9 @@ void work()
 	// Primitives
 	Sphere S(
 		Point(0.f, 0.f, 0.f),
-		0.5f,
+		0.7f,
 		NULL,
-		NULL,
+		&blue,
 		&lambertian,
 		Vec(0.f, 0.f, 0.f));
 	
@@ -89,12 +88,11 @@ void work()
 		&phong1000,
 		Vec(0.f, 0.f, 0.f));
 
-	
 	Sphere SL(
-		Point(0.f, 8.f, 0.f),
-		5.f,
+		Point(-0.5f, 1.f, 2.f),
+		0.7f,
 		NULL,
-		NULL,
+		&white,
 		&lambertian,
 		Vec(4.f, 4.f, 4.f));
 
@@ -112,27 +110,28 @@ void work()
 	Mesh mesh(
 		NULL,
 		&blue,
-		&phong1000,
+		&lambertian,
 		Vec(0.f, 0.f, 0.f));
-	mesh.loadFromFile("cube.obj");
+	mesh.loadFromFile("cornellbox_triangles.obj");
 
 	// Camera
 	// TODO debug screenDist
 	Camera camera(
-		Point(2.f, -1.f, -2.5f), 
-		Point(0.f, 0.f, 0.f),
+		Point(1.5f, 1.5f, 3.5f), 
+		Point(-1.0f, 1.0f, 0.f),
 		ASPECT_RATIO, 
 		1.f);
 
 	// Scene
 	Scene scene;
 	scene.setCamera(&camera);
-	scene.setAmbient(Vec(0.8f, 0.8f, 1.0f));
-	scene.setEnvironmentMap(&glacier);
-	scene.add(&mesh);
+	scene.setAmbient(Vec(0.0f, 0.0f, 0.0f));
+	//scene.setEnvironmentMap(&glacier);
+	//scene.add(&S);
 	//scene.add(&S2);
-	//scene.add(&SL);
+	scene.addAreaLight(&SL);
 	//scene.add(&P);
+	scene.add(&mesh);
 
 	// Render
 	renderer.render(scene, *film, renderParameters);

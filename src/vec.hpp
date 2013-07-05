@@ -140,6 +140,11 @@ static inline Vec operator * (Vec const& V, float s)
 	return s * V;
 }
 
+static inline void operator *= (Vec & V, float s) 
+{ 
+	V = s * V;
+}
+
 static inline Vec operator / (Vec const& V, float s) 
 { 
 	__m128 t = _mm_set1_ps(s);

@@ -26,6 +26,56 @@ static float ssdisp[9][2] = {
 	std::clog << '\r' << std::setw(3) << (line * 100) / height << "% - line " << line << " of " << height; 
 }*/
 
+static inline Vec directIllum(Intersection const& isect, Primitive const &light, Vec &WiW, float &pdf)
+{
+	Intersection lightSample;
+	light.sample(isect.P, lightSample, pdf);
+	// TODO texture
+	WiW = (lightSample.P - isect.P).normalized();
+	return light.getEmittance();
+}
+
+Vec PathRenderer::evaluateDirectLighting(Intersection const& isect, Vec const &WoL, Vec const &textureColor)
+{
+	Vec Ld, Wi;
+	float pdf, lightPdf;
+	Ray R;
+	R.O = isect.P;
+	Intersection occluded;
+	Intersection lightSample;
+	for (auto p = m_scene->getAreaLights().cbegin(); 
+		p != m_scene->getAreaLights().cend();
+		++p) 
+	{
+		Primitive const *light = *p;
+		light->sample(isect.P, lightSample, lightPdf);
+		Vec XX = lightSample.P - isect.P;
+		R.D = XX.normalized();
+
+		// check if ray is occluded
+		//std::clog << lightSample.P << '\n';
+		bool hit = m_scene->findIntersection(R, &occluded);
+		if (!hit || occluded.primitive != light) {
+			// occluded
+			//std::clog << "SHADOW " << hit << "\n";
+		} else {
+			//std::clog << "OK\n";
+			Vec bxdfValue;
+			Vec WiL = isect.worldToLocal(R.D);
+			isect.primitive->getBxDF()->eval(textureColor, WoL, WiL, bxdfValue, pdf);
+			
+			//std::clog << Ei << '\n';
+			Vec Ldi = light->getEmittance();
+			// Geometry term
+			//std::clog << lightPdf << " " << dot(XX, XX) << '\n';
+			Ldi *= dot(R.D, isect.N) * dot(lightSample.N, -R.D) / (dot(XX, XX) * lightPdf);
+			Ld += Ldi * bxdfValue;
+			//std::clog << Ld << '\n';
+		}
+	}
+	return Ld;
+}
+
 /*Vec PathRenderer::evaluateDirectLighting(Intersection const& isect, Vec const& in, Vec const& color, BSDF const* bsdf)
 {
 	Vec e = nullVec;
@@ -83,6 +133,10 @@ static float ssdisp[9][2] = {
 	return e;
 }*/
 
+// for each area light
+//		sample
+//		
+
 //===================================================
 // PathRenderer::trace (private)
 // evaluate outgoing radiance at a given point
@@ -93,7 +147,7 @@ Vec PathRenderer::trace(Ray const& R, unsigned int depth, bool seeLight)
 {
 	// Stop tracing when the maximum depth is reached
 	if (depth >= m_params->maxDepth) {
-		return m_scene->getAmbient();
+		return Vec(0.f,0.f,0.f);
 	}
 
 	Intersection isect;
@@ -121,7 +175,7 @@ Vec PathRenderer::trace(Ray const& R, unsigned int depth, bool seeLight)
 	// skip sampling if this is a light source
 	//
 	if (!(E == nullVec)) {
-		return seeLight ? E : Vec(0,0,0);
+		return seeLight ? E : Vec(0.f,0.f,0.f);
 	}
 
 	
@@ -152,7 +206,7 @@ Vec PathRenderer::trace(Ray const& R, unsigned int depth, bool seeLight)
 		bxdf->sample(textureColor, WoL, WiL, bxdfResult, pdfResult, bxdfType);
 	} else {
 		// no BSDF, return texture color
-		return textureColor;
+		return E + textureColor;
 	}
 
 	//===========================================
@@ -163,15 +217,23 @@ Vec PathRenderer::trace(Ray const& R, unsigned int depth, bool seeLight)
 	//===========================================
 	// Continue path
 	bool nextSeeLight = true;
-	//if (bxdfType & BxDF_SPECULAR) {	
+	if (bxdfType & BxDF_SPECULAR) {	
 		//
 		// Perfect specular reflection : do not evaluate the contribution of light sources 
 		// 
-	return E + bxdfResult*trace(Ray(isect.P, Wi), depth+1, nextSeeLight);
+		E += bxdfResult*trace(Ray(isect.P, Wi), depth + 1, nextSeeLight);
+	} else {
+		nextSeeLight = false;
+		E += evaluateDirectLighting(isect, WoL, textureColor);
+		if (!m_params->directLightingOnly) {
+			//E += bxdfResult*trace(Ray(isect.P, Wi), depth + 1, nextSeeLight);
+		}
+	}
 		// Note: value should be (1,1,1) 
 	//} else {		
 	//	return E + textureColor*bxdfResult*trace(Ray(isect.P, Wo), depth+1, nextSeeLight);
 	//}
+	return E;
 }
 
 //===================================================

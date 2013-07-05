@@ -136,6 +136,7 @@ private:
 	Vec samplePixel(float x, float y);
 	Vec samplePixelProgressive(float x, float y);
 	Vec trace(Ray const& ray, unsigned int depth, bool seeLight = true);
+	Vec evaluateDirectLighting(Intersection const& isect, Vec const &WoL, Vec const &textureColor);
 	//Vec evaluateDirectLighting(Intersection const& isect, Vec const& in, Vec const& color, BSDF const* bsdf);
 
 	RenderParameters const *m_params;

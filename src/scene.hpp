@@ -24,6 +24,11 @@ public:
 		m_primitives.push_back(primitive);
 	}
 
+	void addAreaLight(Primitive const* primitive) {
+		m_primitives.push_back(primitive);
+		m_areaLights.push_back(primitive);
+	}
+
 	void remove(Primitive const* primitive) {
 		// TODO
 	}
@@ -72,13 +77,25 @@ public:
 		return m_envmap;
 	}
 
+	std::vector<Primitive const *> const &getPrimitives() const {
+		return m_primitives;
+	}
+
+	std::vector<Primitive const *> const &getAreaLights() const {
+		return m_areaLights;
+	}
+	
+	// TODO getEmitters
+
 private:
 	// Ambient color (TODO textures, envmaps, sun & sky models)
 	Vec m_ambient;
 	// Camera
 	Camera const *m_camera;
 	// TODO BVH
-	std::vector<Primitive const*> m_primitives;
+	std::vector<Primitive const *> m_primitives;
+	std::vector<Primitive const *> m_areaLights;
+	std::vector<Emitter const *> m_emitters;
 	// Envmap (optional)
 	EnvironmentMap const *m_envmap;
 };

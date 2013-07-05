@@ -41,6 +41,33 @@ struct Intersection
 };
 
 //==================================
+// Emitter
+class Emitter
+{
+public:
+	// sample the light
+	virtual void sampleL(Point const &P, Vec &Wi, Vec &E, float &pdf) const = 0;
+protected:
+};
+
+//==================================
+// PointLight
+class PointLight : public Emitter
+{
+public:
+	virtual void sampleL(Point const &P, Vec &Wi, Vec &E, float &pdf) const {
+		Wi = m_point - P;
+		E = m_emittance / dot(Wi, Wi);
+		Wi = Wi.normalized();
+		pdf = 1.f;
+	}
+
+protected:
+	Point const &m_point;
+	Vec const &m_emittance;
+};
+
+//==================================
 // Primitive
 class Primitive
 {
@@ -63,7 +90,22 @@ public:
 	 * If isect is NULL, only a predicate is returned
 	 */
 	virtual bool intersect(Ray const& ray, Intersection& isect) const = 0;
+	
+	/*
+	 * Sample a point on the primitive
+	 */
+	virtual void sample(Point const& O, Intersection &isect, float &pdf) const = 0;
 
+	/*
+	 * Emitter : sample 
+	 */
+	void sampleL(Point const &P, Vec &Wi, Vec &E, float &pdf) const {
+		Intersection isect;
+		sample(P, isect, pdf);
+		// TODO texture
+		E = m_emittance * M_PI / pdf;
+		Wi = P - isect.P;
+	}
 
 	Texture const *getTexture() const {
 		return m_texture;
@@ -85,6 +127,13 @@ protected:
 	BxDF const *m_bxdf;
 	Vec m_emittance;
 };
+
+static inline void sphereUV(Vec const& N, float &u, float &v)
+{
+	// UV parameters
+	u = 0.5f + atan2f(N.z(), N.x()) / (2 * M_PI);
+	v = 0.5f + 2.f * asinf(N.y()) / (2 * M_PI);
+}
 
 class Sphere : public Primitive
 {
@@ -144,15 +193,24 @@ public:
 		isect.N = (isect.P - m_center).normalized();
 
 		// UV parameters
-		isect.u = 0.5f + atan2f(isect.N.z(), isect.N.x()) / (2 * M_PI);
-		isect.v = 0.5f + 2.f * asinf(isect.N.y()) / (2 * M_PI);
-
-		// to world space
-		//isect.P += m_center;
+		sphereUV(isect.N, isect.u, isect.v);
 		
 		genOrtho(isect.N, isect.S, isect.T);
 		isect.primitive = this;
 		return true;
+	}
+
+	virtual void sample(Point const& O, Intersection &isect, float &pdf) const {
+		// sample a point on the sphere
+		Vec N = (O - m_center).normalized();
+		Vec D = uniformSampleHemisphere();
+		Vec T, S;
+		genOrtho(N, T, S);
+		isect.P = m_center + m_radius * (D.x() * T + D.y() * S + D.z() * N);
+		isect.N = N;
+		isect.T = T;
+		isect.S = S;
+		pdf = 1.f / (2.f * M_PI);	// INV_TWOPI
 	}
 
 protected:
@@ -197,6 +255,10 @@ public:
 		isect.P = R.O + isect.t * R.D;
 		isect.primitive = this;
 		return true;
+	}
+
+	virtual void sample(Point const& O, Intersection &isect, float &pdf) const {
+		// TODO
 	}
 
 protected:
