@@ -24,25 +24,32 @@ public:
 		m_primitives.push_back(primitive);
 	}
 
-	void addAreaLight(Primitive const* primitive) {
-		m_primitives.push_back(primitive);
-		m_areaLights.push_back(primitive);
+	void addEmitter(Emitter const* emitter) {
+		m_emitters.push_back(emitter);
 	}
 
 	void remove(Primitive const* primitive) {
 		// TODO
 	}
 
-	bool findIntersection(Ray const& ray, Intersection *isect) const {
-		static const float inf = 1e30f;
+	Vec evalAmbient(Vec const &dir) const {
+		if (m_envmap) {
+			return m_envmap->eval(dir);
+		} else {
+			return getAmbient();
+		}
+	}
+
+	// TODO check maxt
+	bool findIntersection(Ray const& ray, Intersection *isect, float maxt = 1e30f) const {
 		Intersection tmp_isect;
-		isect->t = inf;
+		isect->t = maxt;
 		bool hit = false;
 		for (std::vector<Primitive const*>::const_iterator p = 
 				m_primitives.cbegin(); 
 			p != m_primitives.cend(); ++p)
 		{
-			if ((*p)->intersect(ray, tmp_isect)) {
+			if ((*p)->intersect(ray, tmp_isect) && tmp_isect.t < maxt) {
 				// confirmed hit
 				if (hit == false || tmp_isect.t < isect->t) {
 					hit = true;
@@ -50,6 +57,7 @@ public:
 				}
 			}
 		}
+		isect->WoW = -ray.D;
 		return hit;
 	}
 
@@ -81,8 +89,8 @@ public:
 		return m_primitives;
 	}
 
-	std::vector<Primitive const *> const &getAreaLights() const {
-		return m_areaLights;
+	std::vector<Emitter const *> const &getEmitters() const {
+		return m_emitters;
 	}
 	
 	// TODO getEmitters
@@ -94,7 +102,6 @@ private:
 	Camera const *m_camera;
 	// TODO BVH
 	std::vector<Primitive const *> m_primitives;
-	std::vector<Primitive const *> m_areaLights;
 	std::vector<Emitter const *> m_emitters;
 	// Envmap (optional)
 	EnvironmentMap const *m_envmap;

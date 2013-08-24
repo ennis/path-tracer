@@ -3,4 +3,3 @@
 #include <iostream>
 #include <fstream>
 
-Mesh Mesh::loadFromOBJ(char const* filename);

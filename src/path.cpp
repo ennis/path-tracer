@@ -5,6 +5,7 @@
 #include "path.hpp"
 #include "util.hpp"
 #include "primitive.hpp"
+#include "bsdf.hpp"
 
 // x9 supersampling
 static const unsigned int NUM_SUPERSAMPLES = 9;
@@ -26,52 +27,53 @@ static float ssdisp[9][2] = {
 	std::clog << '\r' << std::setw(3) << (line * 100) / height << "% - line " << line << " of " << height; 
 }*/
 
-static inline Vec directIllum(Intersection const& isect, Primitive const &light, Vec &WiW, float &pdf)
+/*static inline Vec directIllum(Intersection const& isect, Primitive const &light, Vec &WiW, float &pdf)
 {
 	Intersection lightSample;
 	light.sample(isect.P, lightSample, pdf);
 	// TODO texture
 	WiW = (lightSample.P - isect.P).normalized();
 	return light.getEmittance();
+}*/
+
+
+static bool isOccluded(Scene const &scene, Point const &P, Vec const &dir, float maxt)
+{
+	Intersection test;
+	return scene.findIntersection(Ray(P, dir), &test, maxt);
 }
 
-Vec PathRenderer::evaluateDirectLighting(Intersection const& isect, Vec const &WoL, Vec const &textureColor)
+
+Vec PathRenderer::evaluateDirectLighting(Intersection const &isect)
 {
-	Vec Ld, Wi;
-	float pdf, lightPdf;
-	Ray R;
-	R.O = isect.P;
-	Intersection occluded;
-	Intersection lightSample;
-	for (auto p = m_scene->getAreaLights().cbegin(); 
-		p != m_scene->getAreaLights().cend();
+	Vec Ld, WiW;
+	float pdf, maxt;
+	float u1, u2;
+	for (auto p = m_scene->getEmitters().cbegin(); 
+		p != m_scene->getEmitters().cend();
 		++p) 
 	{
-		Primitive const *light = *p;
-		light->sample(isect.P, lightSample, lightPdf);
-		Vec XX = lightSample.P - isect.P;
-		R.D = XX.normalized();
-
-		// check if ray is occluded
-		//std::clog << lightSample.P << '\n';
-		bool hit = m_scene->findIntersection(R, &occluded);
-		if (!hit || occluded.primitive != light) {
-			// occluded
-			//std::clog << "SHADOW " << hit << "\n";
-		} else {
-			//std::clog << "OK\n";
-			Vec bxdfValue;
-			Vec WiL = isect.worldToLocal(R.D);
-			isect.primitive->getBxDF()->eval(textureColor, WoL, WiL, bxdfValue, pdf);
-			
-			//std::clog << Ei << '\n';
-			Vec Ldi = light->getEmittance();
+		for (int i = 0; i < m_params->numShadowRays; ++i) {
+			m_lightSampler->getNext2D(u1, u2);
+			Vec E = (*p)->sampleLight(isect.P, u1, u2, WiW, pdf, maxt);
+			// check if ray is occluded
+			if (isOccluded(*m_scene, isect.P, WiW, maxt)) {
+				//std::clog << "occluded\n";
+				continue;
+				//if (distance(test.P, isect.P) > EPSILON) {
+					//std::clog << "nohit\n";
+					//continue;
+				//}
+				//if (test.primitive == isect.primitive) {
+					//std::clog << "self-intersection\n";
+					//__debugbreak();
+				//}
+			} 
+			//Vec WiL = isect.toLocal(R.D);
 			// Geometry term
-			//std::clog << lightPdf << " " << dot(XX, XX) << '\n';
-			Ldi *= dot(R.D, isect.N) * dot(lightSample.N, -R.D) / (dot(XX, XX) * lightPdf);
-			Ld += Ldi * bxdfValue;
-			//std::clog << Ld << '\n';
+			Ld += E * isect.primitive->getMaterial()->eval(isect, WiW) * dot(WiW, isect.N) / pdf;
 		}
+		Ld *= 1.f / static_cast<float>(m_params->numShadowRays);
 	}
 	return Ld;
 }
@@ -143,108 +145,102 @@ Vec PathRenderer::evaluateDirectLighting(Intersection const& isect, Vec const &W
 // isect -> texture sampling  ..........-> blend -> RETURN
 //       -> material sampling -> trace..
 
-Vec PathRenderer::trace(Ray const& R, unsigned int depth, bool seeLight)
+Vec PathRenderer::trace(Ray const& R, unsigned int depth, bool seeLight, bool debug)
 {
 	// Stop tracing when the maximum depth is reached
-	if (depth >= m_params->maxDepth) {
+	/*if (depth >= m_params->maxDepth) {
 		return Vec(0.f,0.f,0.f);
-	}
+	}*/
+
 
 	Intersection isect;
-	EnvironmentMap const *envmap = m_scene->getEnvironmentMap();
+	Vec Li, E, Ambient;
+	Ray Rp = R;
+	Vec C = Vec(1.f, 1.f, 1.f);
+	float u1, u2;
+
+	for (unsigned int i = 0; i < 5; ++i) {
 	
-	//===========================================
-	// find intersection
-	if (!m_scene->findIntersection(R, &isect)) {
-		// no intersection : return ambient color
-		// TODO environment maps
-		if (envmap) {
-			return envmap->eval(R.D);
-		} else {
-			return m_scene->getAmbient();
+		//===========================================
+		// find intersection
+		if (!m_scene->findIntersection(Rp, &isect)) {
+			// no intersection, add contribution of ambient light
+			// and terminate path
+			Li += C * m_scene->evalAmbient(Rp.D);
+			break;
 		}
-	}
 
-	//if (depth > 0) {
-	//	std::clog << "Self intersection\n";
-	//}
+		//===========================================
+		// add emissive component and continue path
+		E = isect.primitive->getEmittance();
 
-	Vec E = isect.primitive->getEmittance();
-
-	//
-	// skip sampling if this is a light source
-	//
-	if (!(E == nullVec)) {
-		return seeLight ? E : Vec(0.f,0.f,0.f);
-	}
-
-	
-	//===========================================
-	// Texture sampling
-	Texture const *texture = isect.primitive->getTexture();
-	Vec textureColor;
-	if (texture != NULL) {
-		textureColor = texture->sample(isect.u, isect.v);
-	} else {
-		// TODO missing texture
-		textureColor = Vec(0.f, 1.f, 0.f);
-	}
-
-	//===========================================
-	// world to local
-	Vec WoL = isect.worldToLocal(-R.D);
-
-	//===========================================
-	// BSDF sampling
-	Vec bxdfResult;
-	float pdfResult;
-	Vec WiL;
-	int bxdfType;
-	BxDF const *bxdf = isect.primitive->getBxDF();
-
-	if (bxdf != NULL) {
-		bxdf->sample(textureColor, WoL, WiL, bxdfResult, pdfResult, bxdfType);
-	} else {
-		// no BSDF, return texture color
-		return E + textureColor;
-	}
-
-	//===========================================
-	// Transform output direction to world space
-	Vec Wi = isect.localToWorld(WiL); 
-	//std::clog << "WoL: " << WoL << "\nWo: " << Wo << "\n";
-
-	//===========================================
-	// Continue path
-	bool nextSeeLight = true;
-	if (bxdfType & BxDF_SPECULAR) {	
-		//
-		// Perfect specular reflection : do not evaluate the contribution of light sources 
-		// 
-		E += bxdfResult*trace(Ray(isect.P, Wi), depth + 1, nextSeeLight);
-	} else {
-		nextSeeLight = false;
-		E += evaluateDirectLighting(isect, WoL, textureColor);
-		if (!m_params->directLightingOnly) {
-			//E += bxdfResult*trace(Ray(isect.P, Wi), depth + 1, nextSeeLight);
+		// skip sampling if the object is emissive
+		if (!(E == nullVec)) {
+			Li += C * (seeLight ? E : Vec(0.f,0.f,0.f));
+			break;
 		}
+
+		//===========================================
+		// Material sampling
+		float pdfResult;
+		Vec WiW;
+		int bxdfType;
+		Material const *material = isect.primitive->getMaterial();
+		material->init(isect);
+
+		//===========================================
+		// Next path
+		m_bxdfSampler->getNext2D(u1, u2);
+		Vec Ci = material->sample(isect, u1, u2, WiW, pdfResult, bxdfType);
+
+		//===========================================
+		// Russian roulette termination
+		if (depth >= 3) {
+			float pterm = std::max(C.x(), std::max(C.y(), C.z()));
+			if (frand(0.f, 1.f) > pterm) {
+				// terminate
+				break;
+			} else {
+				C *= 1.f / pterm;
+			}
+		}
+
+		//===========================================
+		// Direct lighting
+		if (m_params->directLightingOnly) {
+			if (!(bxdfType & BxDF_SPECULAR)) {
+				Li += C * evaluateDirectLighting(isect);
+			}
+			break;
+		}
+
+		seeLight = true;
+		if (!(bxdfType & BxDF_SPECULAR) && m_params->explicitLightSampling) {
+			Li += C * evaluateDirectLighting(isect);
+			seeLight = false;
+		}
+
+		C *= Ci;
+		
+		Rp.O = isect.P;
+		Rp.D = WiW;
 	}
-		// Note: value should be (1,1,1) 
-	//} else {		
-	//	return E + textureColor*bxdfResult*trace(Ray(isect.P, Wo), depth+1, nextSeeLight);
-	//}
-	return E;
+
+	return Li;
 }
 
 //===================================================
 // PathRenderer::samplePixel
-Vec PathRenderer::samplePixel(float x, float y)
+Vec PathRenderer::samplePixel(float x, float y, bool debug)
 {
 	const float invsppf = 1.f / static_cast<float>(m_params->samplesPerPixel);
 	Vec sample;
+	float xrand;
+	float yrand;
 	for (unsigned int i = 0; i < m_params->samplesPerPixel; ++i) {
-		float xrand = frand(-0.5, 0.5);
-		float yrand = frand(-0.5, 0.5);
+		m_subsampleSampler->getNext2D(xrand, yrand);
+		xrand -= 0.5f;
+		yrand -= 0.5f;
 		sample = sample + trace(
 			m_scene->getCamera()->rayThroughCameraPixel(
 				x + xrand, 
@@ -252,7 +248,8 @@ Vec PathRenderer::samplePixel(float x, float y)
 				static_cast<float>(m_params->pixelWidth),
 				static_cast<float>(m_params->pixelHeight)), 
 			0, 
-			true);
+			true,
+			debug);
 	}
 	sample = sample * invsppf;
 	sample = clamp(sample, 0.f, 1.f);
@@ -261,18 +258,22 @@ Vec PathRenderer::samplePixel(float x, float y)
 
 //===================================================
 // PathRenderer::samplePixelProgressive
-Vec PathRenderer::samplePixelProgressive(float x, float y)
+Vec PathRenderer::samplePixelProgressive(int px, int py, float &x, float &y, bool debug)
 {
-	float xrand = frand(-0.5, 0.5);
-	float yrand = frand(-0.5, 0.5);
+	float xrand;
+	float yrand;
+	m_subsampleSampler->getNext2D(xrand, yrand);
+	x = static_cast<float>(px) + xrand - 0.5f;
+	y = static_cast<float>(py) + yrand - 0.5f;
+
 	return trace(
 		m_scene->getCamera()->rayThroughCameraPixel(
-			x + xrand, 
-			y + yrand, 
+			x, y, 
 			m_params->pixelWidth,
 			m_params->pixelHeight), 
 		0,
-		true);
+		true,
+		debug);
 }
 
 //===================================================
@@ -305,23 +306,29 @@ void PathRenderer::renderScanline()
 	{
 		for (int j = 0; j < m_params->pixelWidth; ++j) 
 		{
+			bool debug = false;
+			if (j == m_params->debugPixelX && i == m_params->debugPixelY) {
+				debug = true;
+			}
 			Vec accum = Vec(0,0,0);
 			if (m_params->supersampling) {
 				for (unsigned int ss = 0; ss < NUM_SUPERSAMPLES; ++ss) {
 					accum = accum + samplePixel(
 						j+ssdisp[ss][0], 
-						i+ssdisp[ss][1]);
+						i+ssdisp[ss][1],
+						debug);
 					m_samples++;
 				}
 				accum = accum * invssppf;
 			} else {
 				accum = samplePixel(
 					static_cast<float>(j), 
-					static_cast<float>(i));
+					static_cast<float>(i),
+					debug);
 				m_samples++;
 			}
 					
-			m_film->accumPixel(j, i, accum);
+			m_film->addSample(j, i, accum);
 		}
 		m_lines++;
 	}
@@ -338,10 +345,13 @@ void PathRenderer::renderProgressive()
 		{
 			for (int j = 0; j < m_params->pixelWidth; ++j) 
 			{
-				Vec accum = samplePixelProgressive(
-					static_cast<float>(j), 
-					static_cast<float>(i));
-				m_film->accumPixel(j, i, accum);
+				bool debug = false;
+				if (j == m_params->debugPixelX && i == m_params->debugPixelY) {
+					debug = true;
+				}
+				float x, y;
+				Vec accum = samplePixelProgressive(j, i, x, y, debug);
+				m_film->addSample(x, y, accum);
 				m_samples++;
 			}
 		}

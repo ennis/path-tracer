@@ -16,6 +16,8 @@
 #include "primitive.hpp"
 #include "scene.hpp"
 #include "mesh.hpp"
+#include "bsdf.hpp"
+#include "util.hpp"
 
 using namespace std;
 
@@ -29,113 +31,140 @@ Film *film;
 PathRenderer renderer;
 RenderParameters renderParameters;
 
-template <typename T>
-T clamp(T v, T min, T max)
-{
-	return (v < min) ? min : ((v > max) ? max : v);
-}
 
 //===============================
 // Render thread
 void work()
 {	
 	// render parameters
-	renderParameters.samplesPerPixel = 50;
-	renderParameters.maxDepth = 8;
+	renderParameters.samplesPerPixel = 1000;
+	renderParameters.maxDepth = 6;
 	renderParameters.supersampling = true;
 	renderParameters.cosineWeightedSampling = false;
-	renderParameters.directLightingOnly = true;
+	renderParameters.directLightingOnly = false;
 	renderParameters.explicitLightSampling = true;
+	renderParameters.numShadowRays = 1;
 	renderParameters.pixelWidth = XRES;
 	renderParameters.pixelHeight = YRES;
 	renderParameters.progressive = true;
+	renderParameters.debugPixelX = -1;
+	renderParameters.debugPixelY = -1;
 
 	// BSDFs
-	LambertianBRDF lambertian;
-	MirrorBRDF mirror(0.5f);
+	/*MirrorBRDF mirror(0.5f);
 	PhongBRDF phong1000(10000, Vec(1.f, 1.f, 1.f));
 	PhongBRDF phong100(100, Vec(1.f, 1.f, 1.f));
+	AshikhminShirleyBRDF anisotropic(0.f, 0.9f, 10, 100);
+	MixBRDF test(&lambertian, &mirror, 0.85f);
+	GlassBRDF glass(1.1f);*/
 
 	// Environment map
 	EnvironmentMap glacier;
-	glacier.loadFromFile("uffizi-large.hdr", 2.f);
+	glacier.loadFromFile("uffizi-large.hdr", 1.f);
 
 	// Textures
 	CheckerboardTexture checkerboard(
 		Vec(0.1f, 0.1f, 0.05f), 
 		Vec(1.f, 1.f, 1.f),
+		1.f,
+		1.f);
+
+	GridTexture grid(
+		Vec(0.1f, 0.1f, 0.05f), 
+		Vec(1.f, 1.f, 1.f),
 		0.5f,
 		0.5f);
 
+	GlassMaterial glass(1.12);
+
 	ColorTexture redTexture(Vec(0.9f, 0.15f, 0.05f));
 	ColorTexture white(Vec(1.f, 1.f, 1.f));
-	ColorTexture blue(Vec(0.2f, 0.4f, 1.f));
+	ColorTexture blue(Vec(0.2f, 0.4f, 0.9f));
+	ColorTexture green(Vec(0.2f, 0.7f, 0.2f));
+
+	LambertianMaterial lambertianGrid(&grid);
+	LambertianMaterial lambertianBlue(&blue);
+	LambertianMaterial lambertianGreen(&green);
+	LambertianMaterial lambertianCheck(&checkerboard);
+	
+	MirrorMaterial mirrorGrid(0.5f, &grid);
+	MirrorMaterial mirrorBlue(0.7f, &blue);
+	MirrorMaterial mirrorGreen(0.7f, &green);
+	MirrorMaterial mirrorWhite(0.7f, &white);
+
+	PointLight pointLight(Point(10, 10, -10), Vec(400.0, 400.0, 400.0));
 
 	// Primitives
 	Sphere S(
 		Point(0.f, 0.f, 0.f),
-		0.7f,
+		1.f,
 		NULL,
-		&blue,
-		&lambertian,
+		&lambertianBlue,
 		Vec(0.f, 0.f, 0.f));
 	
 	Sphere S2(
-		Point(1.f, 1.f, 0.5f),
+		Point(-5.f, 0.f, -6.f),
 		1.f,
 		NULL,
-		&white,
-		&phong1000,
+		&lambertianGreen,
 		Vec(0.f, 0.f, 0.f));
 
 	Sphere SL(
-		Point(-0.5f, 1.f, 2.f),
-		0.7f,
+		Point(6.0f, 4.f, 0.f),
+		3.f,
 		NULL,
-		&white,
-		&lambertian,
-		Vec(4.f, 4.f, 4.f));
+		&lambertianBlue,
+		Vec(5.5f, 5.5f, 6.7f));
 
 
 	Plane P(
-		Point(0.f, -2.f, 0.f),
+		Point(0.f, -1.f, 0.f),
 		Vec(0.f,1.f,0.f),
 		NULL,
-		&redTexture,
-		&lambertian,
+		&lambertianGrid,
+		Vec(0.f, 0.f, 0.f));
+
+	Plane P2(
+		Point(0.f, 7.f, 0.f),
+		Vec(0.f,-1.f,0.f),
+		NULL,
+		&lambertianBlue,
 		Vec(0.f, 0.f, 0.f));
 
 	
 	// Meshes
 	Mesh mesh(
 		NULL,
-		&blue,
-		&lambertian,
+		&lambertianBlue,
 		Vec(0.f, 0.f, 0.f));
 	mesh.loadFromFile("cornellbox_triangles.obj");
 
 	// Camera
 	// TODO debug screenDist
 	Camera camera(
-		Point(1.5f, 1.5f, 3.5f), 
-		Point(-1.0f, 1.0f, 0.f),
-		ASPECT_RATIO, 
-		1.f);
+		Point(1.0f, 1.5f, 3.5f), 
+		Point(0.0f, 0.0f, 0.f),
+		ASPECT_RATIO * 4.f, 
+		1.f * 4.f,
+		0.1f,
+		0.2f);
 
 	// Scene
 	Scene scene;
 	scene.setCamera(&camera);
 	scene.setAmbient(Vec(0.0f, 0.0f, 0.0f));
 	//scene.setEnvironmentMap(&glacier);
-	//scene.add(&S);
-	//scene.add(&S2);
-	scene.addAreaLight(&SL);
-	//scene.add(&P);
-	scene.add(&mesh);
+	scene.add(&S);
+	scene.add(&S2);
+	//scene.add(&SL);
+	scene.addEmitter(&SL);
+	//scene.addEmitter(&pointLight);
+	scene.add(&P);
+	//scene.add(&P2);
+	//scene.add(&mesh);
 
 	// Render
 	renderer.render(scene, *film, renderParameters);
-
 }
 
 //===============================
@@ -219,6 +248,11 @@ int main(int argc, char ** argv)
 					}
 					break;
 				}
+			} else if (event.type == sf::Event::MouseButtonPressed) {
+				sf::Vector2i pos = sf::Mouse::getPosition(window);
+				renderParameters.debugPixelX = pos.x;
+				renderParameters.debugPixelY = pos.y;
+				std::clog << "Debug pixel " << pos.x << ", " << pos.y << "\n";
 			}
 		}
 

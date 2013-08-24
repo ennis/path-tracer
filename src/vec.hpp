@@ -39,15 +39,15 @@ struct Vec
 	}
 
 	Vec normalized() const {
-		float s = _mm_cvtss_f32(_mm_dp_ps(xyzw, xyzw, 0xF1));
+		/*float s = _mm_cvtss_f32(_mm_dp_ps(xyzw, xyzw, 0xF1));
 	if (fabs(s - 1.0f) < EPSILON) {
 		return *this;
 	}
 	// estimate + NR
 	float half = 0.5f * s;
 		s = _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ss(s)));
-	s = s * (1.5f - half*s*s);
-	return Vec(_mm_mul_ps(xyzw, _mm_set1_ps(s)));
+	s = s * (1.5f - half*s*s);*/
+	return Vec(_mm_div_ps(xyzw, _mm_set1_ps(norm())));
 	}
 
 	float x() const {
@@ -126,7 +126,7 @@ static inline void operator-=(Vec& v1, Vec const& v2)
 
 static inline void operator*=(Vec& v1, Vec const& v2)
 {
-	v1.xyzw = _mm_sub_ps(v1.xyzw, v2.xyzw);
+	v1.xyzw = _mm_mul_ps(v1.xyzw, v2.xyzw);
 }
 
 static inline Vec operator * (float s, Vec const& V) 
@@ -156,8 +156,16 @@ static inline Vec operator * (Vec const& U, Vec const& V) {
 	return Vec(_mm_mul_ps(U.xyzw,V.xyzw)); 
 }
 
-static inline float dot (Vec const& U, Vec const& V) { 
+/*static inline float dot (Vec const& U, Vec const& V) { 
 	return _mm_cvtss_f32(_mm_dp_ps(U.xyzw, V.xyzw, 0xFF)); 
+}*/
+
+static inline float distance(Point const& U, Point const& V) {
+	return (V - U).norm();
+}
+
+static inline float dot (Vec const& U, Vec const& V) { 
+	return U.x()*V.x() + U.y()*V.y() + U.z()*V.z();
 }
 
 static inline Vec cross (Vec const& U, Vec const& V) {

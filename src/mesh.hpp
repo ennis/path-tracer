@@ -1,5 +1,6 @@
 #pragma once
 #include "vec.hpp"
+#include "primitive.hpp"
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -16,7 +17,7 @@ struct Face
 {
 	int vertices[3];
 	int normals[3];
-	int texCoords[3];
+	int texCoords[2];
 	Vec normal;
 };
 
@@ -26,10 +27,9 @@ public:
 
 	Mesh(
 		Transform const *transform, 
-		Texture const *texture,
-		BxDF const *bxdf,
+		Material const *material,
 		Vec const &emittance) :
-		Primitive(transform, texture, bxdf, emittance)
+		Primitive(transform, material, emittance)
 	{}
 		
 	virtual ~Mesh() 
@@ -58,6 +58,7 @@ public:
 		isect.primitive = this;
 		isect.P = R.O + min_dist * R.D;
 		isect.N = faces[face].normal;
+		isect.t = min_dist;
 		genOrtho(isect.N, isect.T, isect.S);
 		return true;
 	}
@@ -102,7 +103,9 @@ public:
 				ss.str(line.substr(2));
 				ss.seekg(0);
 				for (int i = 0; i < 3; ++i) {
-					int a, b, c;
+					int a = 0;
+					int b = 0;
+					int c = 0;
 					ss >> a;
 					if (ss.get() == '/') {
 						if (ss.peek() != '/') {

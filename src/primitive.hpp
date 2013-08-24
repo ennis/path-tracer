@@ -3,12 +3,14 @@
 
 #include "vec.hpp"
 #include "bbox.hpp"
-#include "bsdf.hpp"
 #include "texture.hpp"
 #include "transform.hpp"
 #include "ray.hpp"
 
+#include <iostream>
+
 class Primitive;
+class Material;
 
 //==================================
 // Intersection
@@ -16,6 +18,8 @@ struct Intersection
 {
 	// Primitive at hit point
 	Primitive const *primitive;
+	// incoming ray direction
+	Vec WoW;
 	// distance travelled along the ray
 	float t;
 	// hit point
@@ -25,19 +29,35 @@ struct Intersection
 	// Texture coordinates
 	float u, v;
 
-	inline Vec worldToLocal(Vec const& VW) const
+	inline Vec toLocal(Vec const& VW) const
 	{
 		return Vec(dot(T,VW), 
 			dot(S,VW),
 			dot(N,VW));
 	}
 
-	inline Vec localToWorld(Vec const& VL) const
+	inline Vec toWorld(Vec const& VL) const
 	{
 		return VL.x() * T + 
 				VL.y() * S +
 				VL.z() * N;
 	}
+	
+	// Lambertian, phong: Sampled texture
+	Vec texSample;
+};
+
+enum LightSamplingStrategy
+{
+	SOLID_ANGLE,
+	AREA_LIGHT,
+	POINT_LIGHT
+};
+
+struct OcclusionTest
+{
+	float maxt;
+	Ray shadow;
 };
 
 //==================================
@@ -46,7 +66,10 @@ class Emitter
 {
 public:
 	// sample the light
-	virtual void sampleL(Point const &P, Vec &Wi, Vec &E, float &pdf) const = 0;
+	virtual Vec sampleLight(Point const &P, float u1, float u2, Vec &WiW, float &pdf, float &maxt) const {
+		return Vec();
+	}
+
 protected:
 };
 
@@ -55,30 +78,35 @@ protected:
 class PointLight : public Emitter
 {
 public:
-	virtual void sampleL(Point const &P, Vec &Wi, Vec &E, float &pdf) const {
-		Wi = m_point - P;
-		E = m_emittance / dot(Wi, Wi);
-		Wi = Wi.normalized();
+	PointLight(Point const &at, Vec const &emittance) : m_point(at), m_emittance(emittance)
+	{}
+
+	virtual Vec sampleLight(Point const &P, float u1, float u2, Vec &WiW, float &pdf, float &maxt) const {
+		Vec D = m_point - P;
+		float d2 = dot(D, D);
+		maxt = sqrtf(d2);
+		WiW = D / maxt;
 		pdf = 1.f;
+		return m_emittance / d2;
+		//std::clog << E << '\n';
 	}
 
 protected:
-	Point const &m_point;
-	Vec const &m_emittance;
+	Point m_point;
+	Vec m_emittance;
 };
 
 //==================================
 // Primitive
-class Primitive
+class Primitive : public Emitter
 {
 public:
-	Primitive(Transform const *transform, 
-		Texture const *texture,
-		BxDF const *bxdf,
+	Primitive(
+		Transform const *transform, 
+		Material const *material,
 		Vec const &emittance) :
 	m_transform(transform),
-	m_texture(texture),
-	m_bxdf(bxdf),
+	m_material(material),
 	m_emittance(emittance)
 	{}
 
@@ -91,28 +119,8 @@ public:
 	 */
 	virtual bool intersect(Ray const& ray, Intersection& isect) const = 0;
 	
-	/*
-	 * Sample a point on the primitive
-	 */
-	virtual void sample(Point const& O, Intersection &isect, float &pdf) const = 0;
-
-	/*
-	 * Emitter : sample 
-	 */
-	void sampleL(Point const &P, Vec &Wi, Vec &E, float &pdf) const {
-		Intersection isect;
-		sample(P, isect, pdf);
-		// TODO texture
-		E = m_emittance * M_PI / pdf;
-		Wi = P - isect.P;
-	}
-
-	Texture const *getTexture() const {
-		return m_texture;
-	}
-	
-	BxDF const *getBxDF() const {
-		return m_bxdf;
+	Material const *getMaterial() const {
+		return m_material;
 	}
 
 	Vec const &getEmittance() const {
@@ -121,10 +129,8 @@ public:
 
 protected:
 	AABB m_aabb;
-	// TODO transform, texture, material in base Primitive class
 	Transform const *m_transform;
-	Texture const *m_texture;
-	BxDF const *m_bxdf;
+	Material const *m_material;
 	Vec m_emittance;
 };
 
@@ -141,10 +147,9 @@ public:
 	Sphere(Point const& center,
 		float radius, 
 		Transform const *transform, 
-		Texture const *texture,
-		BxDF const *bxdf,
+		Material const *material,
 		Vec const &emittance) :
-	Primitive(transform, texture, bxdf, emittance),
+	Primitive(transform, material, emittance),
 	m_center(center),
 	m_radius(radius)
 	{
@@ -165,7 +170,7 @@ public:
 		Vec RO = R.O - m_center;
 
 		// Compute A, B and C coefficients
-		float a = 1.f;
+		float a = dot(R.D, R.D);
 		float b = 2 * dot(R.D, RO);
 		float c = dot(RO, RO) - (m_radius * m_radius);
 		//std::clog << a << ' ' << b << ' ' << c << std::endl;
@@ -173,15 +178,29 @@ public:
 		float disc = b*b - 4*a*c;
 		// if discriminant is negative there are no real roots, so return 
 		// false as R misses sphere
-		if (disc < EPSILON) 
+		if (disc < 0) 
 			return false;
 		//std::clog << disc << std::endl;
 		// compute q as described above
-		float discSqrt = sqrt(disc);
-		float t1 = (-b + discSqrt)/(2.0f*a);
+		float discSqrt = sqrtf(disc);
+
+		float q;
+		if (b < 0.f) {
+			q = -0.5f * (b - discSqrt);
+		} else {
+			q = -0.5f * (b + discSqrt);
+		}
+
+		float t0 = q / a;
+		float t1 = c / q;
+
+		if (t0 > t1) {
+			std::swap(t0, t1);
+		}
+
 		if (t1 < EPSILON)
 			return false;
-		float t0 = (-b - discSqrt)/(2.0f*a);
+
 		if (t0 < EPSILON) {
 			isect.t = t1;
 		}
@@ -189,8 +208,9 @@ public:
 			isect.t = t0;
 		}
 		
-		isect.P = R.O + isect.t * R.D;
+		isect.P = R.along(isect.t);
 		isect.N = (isect.P - m_center).normalized();
+		//isect.P += EPSILON * isect.N;
 
 		// UV parameters
 		sphereUV(isect.N, isect.u, isect.v);
@@ -200,17 +220,37 @@ public:
 		return true;
 	}
 
-	virtual void sample(Point const& O, Intersection &isect, float &pdf) const {
-		// sample a point on the sphere
-		Vec N = (O - m_center).normalized();
-		Vec D = uniformSampleHemisphere();
-		Vec T, S;
+	virtual Vec sampleLight(Point const &P, float u1, float u2, Vec &WiW, float &pdf, float &maxt) const {
+		Vec D = m_center - P;
+		Vec N = D.normalized();
+		float d2 = dot(D, D);
+		// apparent angle
+		float cos_max = sqrtf(1.f - (m_radius*m_radius / d2));
+		// solid angle
+		float omega = 2*M_PI*(1-cos_max);
+		// generate a ray 
+		Vec T,S;
 		genOrtho(N, T, S);
-		isect.P = m_center + m_radius * (D.x() * T + D.y() * S + D.z() * N);
-		isect.N = N;
-		isect.T = T;
-		isect.S = S;
-		pdf = 1.f / (2.f * M_PI);	// INV_TWOPI
+
+		float phi = 2*M_PI*u1;
+		float v = 1.f - u2 * (1 - cos_max);
+		float w = sqrt(1 - v*v);
+		WiW = cos(phi) * w * T + sin(phi) * w * S + v * N;
+		Ray R = Ray(P, WiW);
+		Intersection test;
+		if (!intersect(R, test)) {
+			//std::clog << "GRAZE.\n";
+			pdf = 1.f / omega;
+			return Vec();
+		}
+
+		maxt = (P - test.P).norm();
+		pdf = 1.f / omega;
+
+		return m_emittance;
+
+		//pdf =  omega / (4.0f * M_PI);	// INV_TWOPI
+		//std::clog << omega << '\t' << pdf << '\n';
 	}
 
 protected:
@@ -225,10 +265,9 @@ public:
 	Plane(Point const& center,
 		Vec const& normal, 
 		Transform const *transform, 
-		Texture const *texture,
-		BxDF const *bxdf,
+		Material *material,
 		Vec const &emittance) :
-	Primitive(transform, texture, bxdf, emittance),
+	Primitive(transform, material, emittance),
 	m_center(center),
 	m_normal(normal)
 	{}
@@ -247,13 +286,16 @@ public:
 			}
 		}
 		isect.N = m_normal;
-
-		// TODO plane UV mapping
 		
 		// TODO factorize
 		genOrtho(isect.N, isect.S, isect.T);
 		isect.P = R.O + isect.t * R.D;
 		isect.primitive = this;
+
+		Vec PL = isect.toLocal(isect.P);
+		isect.u = (PL.x() < 0.f) ? (1.f - fmodf(abs(PL.x()), 1.f)) : fmodf(PL.x(), 1.f);
+		isect.v = (PL.y() < 0.f) ? (1.f - fmodf(abs(PL.y()), 1.f)) : fmodf(PL.y(), 1.f);
+
 		return true;
 	}
 

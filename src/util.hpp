@@ -18,5 +18,23 @@ static inline uint32_t mapRGB(Vec const& c)
 	return r | g << 8 | b << 16 | 0xFF << 24;
 }
 
+template <typename T>
+T clamp(T v, T min, T max)
+{
+	return std::min(std::max(v, min), max);
+}
+
+static inline
+int ceil2Int(float v)
+{
+	return static_cast<int>(ceilf(v));
+}
+
+static inline 
+int floor2Int(float v)
+{
+	return static_cast<int>(floorf(v));
+}
+
 #endif
 

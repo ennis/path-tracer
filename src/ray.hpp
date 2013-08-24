@@ -13,9 +13,15 @@ struct Ray {
 	D(direction.normalized())
 	{}
 
+	Point along(float dist) const
+	{
+		return O + dist * D;
+	}
+
 	Point O;
 	Vec D;
 };
+
 
 Vec reflectedRay(Vec const& N, Vec const& I);
 Vec refractedRay(Vec const& N, Vec const& I, float n);
@@ -24,10 +30,11 @@ Vec specularRay(Vec const& N, Vec const& I, float specular, bool& bounce);
 Vec uniformRandomRay(Vec const& N);
 Vec halfway(Vec const& in, Vec const& out);
 
-Vec cosineSampleHemisphere();
-Vec uniformSampleHemisphere();
+Vec cosineSampleHemisphere(float u1, float u2);
+Vec uniformSampleHemisphere(float u1, float u2);
 Vec perfectSpecularReflection(Vec const& I);
-Vec cosinePowerSampleHemisphere(float exp);
+Vec cosinePowerSampleHemisphere(float exp, float u1, float u2);
+Vec perfectSpecularRefraction(Vec const& I, float n);
 
 static bool rayPlaneIntersection(Ray const& R, Vec const& N, Vec const& P, float& dist)
 {
@@ -41,5 +48,18 @@ static bool rayPlaneIntersection(Ray const& R, Vec const& N, Vec const& P, float
 		return true;
 	}
 }
+
+/*static Vec sampleCone(float cosThetaMax)
+{
+	float s1 = frand(0.f, 1.f);	// TODO samplers
+	float s2 = frand(0.f, 1.f);
+
+	float phi = 2 * M_PI * s1;
+	float v = 1.f - s2 * (1 - cos_max);
+	float w = sqrt(1 - v*v);
+	Vec Rd = cos(phi) * w * T + sin(phi) * w * S + v * D.normalized();
+	Rd = Rd.normalized();
+}
+*/
 
 #endif
