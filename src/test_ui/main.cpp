@@ -20,9 +20,7 @@ void glCheckError(char const * call)
 {
 	int err = glGetError();
 	if (err != GL_NO_ERROR) {
-		std::stringstream ss;
-		ss << call << " -> " << err << '\n';
-		OutputDebugStringA(ss.str().c_str());
+		std::clog << call << " -> " << err << '\n';
 	}
 }
 
