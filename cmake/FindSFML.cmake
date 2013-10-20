@@ -67,7 +67,8 @@ find_path(SFML_INCLUDE_DIR SFML/Config.hpp
           PATHS
           ${SFML_ROOT}
           $ENV{SFML_ROOT}
-          ~/Library/Frameworks
+          $ENV{LOCAL_EXTRA}
+	  ~/Library/Frameworks
           /Library/Frameworks
           /usr/local/
           /usr/
@@ -116,6 +117,7 @@ set(SFML_FOUND TRUE) # will be set to false if one of the required modules is no
 set(FIND_SFML_LIB_PATHS
     ${SFML_ROOT}
     $ENV{SFML_ROOT}
+    $ENV{LOCAL_EXTRA}
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local
