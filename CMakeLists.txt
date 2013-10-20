@@ -8,7 +8,7 @@ if (${WIN32})
 set(SFML_ROOT "C:\\Program Files\\SFML")
 list(APPEND SFML_REQUIRED main)
 else()
-ADD_DEFINITIONS(-std=c++11 -ggdb)
+ADD_DEFINITIONS(-std=c++11 -msse4.2)
 endif()
 
 find_package(SFML 2 COMPONENTS ${SFML_REQUIRED} REQUIRED)
