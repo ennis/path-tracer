@@ -1,0 +1,17 @@
+
+
+requisition step -> get requisition (engine.getXXXRequisition)
+layout step -> placement (x, y), bounds and content box (engine.doDefaultXXXLayout)
+
+calculateRequisition -> Engine.getRequisition -> calculateChildRequisition -> child.calculateRequisition...
+
+layout(Allocation) -> doLayout(handle additional margins)
+
+slider:
+	hitTestKnob
+	hitTest
+	
+SliderKnob: public Button
+{
+render() { engine.renderSliderKnob(); }
+}
