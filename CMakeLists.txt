@@ -1,28 +1,43 @@
 cmake_minimum_required(VERSION 2.6)
-
-set(EXECUTABLE_NAME "path_tracer")
-set(SFML_ROOT "C:\\Program Files\\SFML")
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
-
 project(PathTracer2)
+
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+set(SFML_REQUIRED system window graphics)
+
+if (${WIN32})
+set(SFML_ROOT "C:\\Program Files\\SFML")
+list(APPEND SFML_REQUIRED main)
+else()
+ADD_DEFINITIONS(-std=c++11 -ggdb)
+endif()
+
+find_package(SFML 2 COMPONENTS ${SFML_REQUIRED} REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
 
 file(
 	GLOB
-	SOURCE_FILES
-	src/*.cpp
-	src/*.hpp
-	src/rgbe/*.cpp
-	src/rgbe/*.hpp
+	PATHTRACER_SOURCE_FILES
+	src/pathtracer/*.cpp
+	src/pathtracer/*.hpp
+	src/pathtracer/rgbe/*.cpp
+	src/pathtracer/rgbe/*.hpp
 )
 
-add_executable(
-	${EXECUTABLE_NAME}
-	${SOURCE_FILES}
+file(
+	GLOB
+	TESTUI_SOURCE_FILES
+	src/test_ui/*.cpp
+	src/test_ui/*.hpp
 )
 
-add_executable(test_ui src/test_ui/main.cpp)
 
-find_package(SFML 2 COMPONENTS main system window graphics REQUIRED)
-include_directories(${SFML_INCLUDE_DIR})
-target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
-target_link_libraries(test_ui ${SFML_LIBRARIES} glew32 opengl32)
+include_directories(${SFML_INCLUDE_DIR} ${OPENGL_INCLUDE_DIRS})
+link_directories(${OPENGL_LIBRARY_DIRS})
+add_definitions(${OPENGL_DEFINITIONS})
+
+add_executable(path_tracer ${PATHTRACER_SOURCE_FILES})
+add_executable(test_ui ${TESTUI_SOURCE_FILES})
+
+target_link_libraries(path_tracer ${SFML_LIBRARIES})
+target_link_libraries(test_ui ${SFML_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARY})

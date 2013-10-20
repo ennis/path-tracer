@@ -20,6 +20,10 @@ public:
 		m_filterHeight(2)
 	{
 		m_buffer = new PixelSample[width*height];
+		for (int i = 0; i < width*height; ++i) {
+			m_buffer[i].accum = nullVec;
+			m_buffer[i].filterAccum = 0.f;
+		}
 	}
 
 	~Film() 
@@ -81,7 +85,7 @@ public:
 		}
 	}
 
-	void convertToRGB(uint32_t * outPixels) const {
+	void convertToRGB(uint32_t *outPixels) const {
 		for (unsigned int x = 0; x < m_width; ++x) {
 			for (unsigned int y = 0; y < m_height; ++y) {
 				PixelSample &sample = pixelAt(x, y);

@@ -295,6 +295,28 @@ private:
 	unsigned int m_pixelWidth, m_pixelHeight;
 };*/
 
+class PathRenderer;
+
+/*class RenderEventHandler
+{
+public:
+	virtual void onFrameRendered() 
+	{}
+
+	virtual void onLineRendered()
+	{}
+
+	virtual void onRenderStarted() 
+	{}
+
+	virtual void onRenderStopped()
+	{}
+
+	static RenderEventHandler defaultHandler;
+};*/
+
+//RenderEventHandler RenderEventHandler::defaultHandler;
+
 class PathRenderer
 {
 public:
@@ -302,11 +324,12 @@ public:
 		m_params(), m_scene(NULL), m_film(NULL),
 		m_samples(0), m_frames(0), m_lines(0), 
 		m_started(false), m_finished(false)
+		//m_eventHandler(RenderEventHandler::defaultHandler)
 	{
 		m_subsampleSampler = new SimpleSampler;
 		m_lightSelectionSampler = new Halton2DSampler(7, 2);
-		m_bxdfSampler = new Stratified2DSampler(10, 101);
-		m_lightSampler = new Stratified2DSampler(10, 101);
+		m_bxdfSampler = new SimpleSampler;
+		m_lightSampler = new SimpleSampler;
 	}
 
 	~PathRenderer() {
@@ -319,6 +342,10 @@ public:
 	void render(Scene const& scene,
 		Film& film,
 		RenderParameters const& renderParameters);
+
+	/*void setEventHandler(RenderEventHandler &handler) {
+		m_eventHandler = handler;
+	}*/
 	
 	bool isStarted() const {
 		return m_started;
@@ -338,6 +365,7 @@ public:
 
 	void stop() {
 		m_finished = true;
+		//m_eventHandler.onRenderStopped();
 	}
 
 private:
@@ -364,6 +392,8 @@ private:
 	unsigned int m_lines;
 	bool m_started;
 	bool m_finished;
+
+	//RenderEventHandler &m_eventHandler;
 };
 
 #endif
