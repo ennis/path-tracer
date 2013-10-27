@@ -48,7 +48,7 @@ void UI::doLayout()
 			height = m_height;
 		}
 
-		m_rootPanel->setBounds(BoundingBox(x, y, width, height));
+		m_rootPanel->layout(*m_engine, BoundingBox(x, y, width, height));
 	}
 }
 

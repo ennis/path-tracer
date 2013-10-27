@@ -104,6 +104,8 @@ void Panel::doLayout(Engine &engine)
 		} else {
 			childBB.height = 10;	// XXX
 		}
+
+		child->layout(engine, childBB);
 	}
 }
 
