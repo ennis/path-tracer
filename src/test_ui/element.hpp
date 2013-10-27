@@ -6,6 +6,9 @@
 #include "engine.hpp"
 #include "boundingbox.hpp"
 #include "size.hpp"
+#include "margins.hpp"
+#include "requisition.hpp"
+#include "sizepolicy.hpp"
 
 #include <SFML/Graphics.hpp>
 
@@ -52,23 +55,11 @@ public:
 		m_class(""), 
 		m_id(""),
 		m_state(VISIBLE),
-		m_reqWidth(-1),
-		m_reqHeight(-1),
-		m_allocation(BoundingBox()),
+		m_requisition(),
 		m_bounds(BoundingBox()),
-		m_boxWidth(Size()),
-		m_boxHeight(Size()),
-		m_marginBoxWidth(0),
-		m_marginBoxHeight(0),
-		m_paddingLeft(2),
-		m_paddingRight(2),
-		m_paddingTop(2),
-		m_paddingBottom(2),
-		m_marginLeft(2),
-		m_marginRight(2),
-		m_marginTop(2),
-		m_marginBottom(2),
-		m_placement(TL),
+		m_contents(BoundingBox()),
+		m_padding(),
+		m_margin(),
 		m_parent()
 	{}
 
@@ -84,34 +75,92 @@ public:
 		return m_id;
 	}
 
-	virtual void setAllocation(BoundingBox const &newBB);
-	virtual void calculateRequisition();
-	virtual void doPlacement();
-	virtual void getRequisition(int &reqWidth, int &reqHeight);
-	virtual void setWidth(Size const &width);
-	virtual void setHeight(Size const &height);
+	//==================================
+	// layout
+	void layout(Engine &engine, BoundingBox const &bounds) {
+		m_bounds = bounds;
+		doLayout(engine);
+	}
+
+	virtual void doLayout(Engine &engine)
+	{}
+
+	virtual Size getDesiredSize(Engine &engine) {
+		return m_fixedSize;
+	}
+
+	
+	//==================================
+	// fixed size
+	Size getMinimumSize() const {
+		return m_minimumSize;
+	}
+
+	Size getMaximumSize() const {
+		return m_maximumSize;
+	}
+
+	Size getFixedSize() const {
+		return m_fixedSize;
+	}
+
+	void setMinimumSize(Size mini) {
+		m_minimumSize = mini;
+	}
+
+	void setMaximumSize(Size maxi) {
+		m_maximumSize = maxi;
+	}
+
+	void setFixedSize(Size fixed) {
+		m_fixedSize = fixed;
+	}
+
+	//==================================
+	// additional margins and padding
+	void setMargin(Margins const &margin) {
+		m_margin = margin;
+	}
+
+	void setPadding(Margins const &padding) {
+		m_padding = padding;
+	}
+
+	//==================================
+	// size policy
+	SizePolicy getVerticalSizePolicy() const {
+		return m_verticalSizePolicy;
+	}
+
+	SizePolicy getHorizontalSizePolicy() const {
+		return m_horizontalSizePolicy;
+	}
+
+	void setSizePolicy(SizePolicy horizontal, SizePolicy vertical) {
+		m_horizontalSizePolicy = horizontal;
+		m_verticalSizePolicy = vertical;
+	}
 
 	void setParent(Element::Ptr parent) {
 		std::clog << "setParent " << this << "->" << parent << "\n";
 		m_parent = parent;
 	}
-	
-	void layoutUpdated();
+
+	void setBounds(BoundingBox const &bb) {
+		m_bounds = bb;
+	}
 
 	BoundingBox const &getBounds() const {
 		return m_bounds;
 	}
 
-	BoundingBox const &getAllocation() const {
+	/*BoundingBox const &getAllocation() const {
 		return m_allocation;
-	}
+	}*/
 
-	void setPlacement(Placement placement) {
+	/*void setPlacement(Placement placement) {
 		m_placement = placement;
-	}
-
-	// called after setAllocation
-	virtual void onSetAllocation();
+	}*/
 
 	virtual bool hitTest(int x, int y) const;
 
@@ -159,35 +208,25 @@ protected:
 	int m_state;
 
 	// requisitions
-	int m_reqWidth, m_reqHeight;
-
-	// Allocated space 
-	BoundingBox m_allocation;
+	Requisition m_requisition;
 
 	// element bounds (== hitbox)
 	BoundingBox m_bounds;
+	// content box
+	BoundingBox m_contents;
 
-	// box size
-	Size m_boxWidth;
-	Size m_boxHeight;
+	Size m_fixedSize;
+	Size m_minimumSize;
+	Size m_maximumSize;
 
-	// calculated margins
-	int m_marginBoxWidth;
-	int m_marginBoxHeight;
-	int m_paddingLeft;
-	int m_paddingRight;
-	int m_paddingTop;
-	int m_paddingBottom;
-	int m_marginLeft;
-	int m_marginRight;
-	int m_marginTop;
-	int m_marginBottom;
+	SizePolicy m_verticalSizePolicy;
+	SizePolicy m_horizontalSizePolicy;
+
+	// additional margins
+	Margins m_padding;
+	Margins m_margin;
 
 	// TODO fixed positions
-
-	// placement
-	Placement m_placement;
-
 	std::weak_ptr<Element> m_parent;
 
 };

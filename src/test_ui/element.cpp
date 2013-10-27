@@ -2,73 +2,81 @@
 
 namespace ui
 {
-	
-void Element::calculateRequisition()
+
+/*void Element::calculateRequisition()
 {
 	if (this->m_boxWidth.type != ui::Size::PIXELS) {
-		m_reqWidth = -1;
+		m_requisition.width = -1;
 	} else {
-		m_reqWidth = this->m_boxWidth.value + m_marginLeft + m_marginRight;
+		m_requisition.width = this->m_boxWidth.value + m_margin.left + m_margin.right;
 	}
 
 	if (this->m_boxHeight.type != ui::Size::PIXELS) {
-		m_reqHeight = -1;
+		m_requisition.height = -1;
 	} else {
-		m_reqHeight = this->m_boxHeight.value + m_marginBottom + m_marginTop;
+		m_requisition.height = this->m_boxHeight.value + m_margin.bottom + m_margin.top;
 	}
-}
+}*/
 
-void Element::doPlacement()
+// sets m_bounds and m_contents
+/*void Element::layoutBox(Margins const &styleMargin, Margins const &stylePadding)
 {
-	if (m_reqWidth == -1) {
-		m_bounds.width = m_boxWidth.toPixels(m_allocation.width) - m_marginLeft - m_marginRight;
-		m_bounds.x = m_allocation.x + m_marginLeft;
-	} else {
-		switch (m_placement) {
-		case TL:
-		case CL:
-		case BL:
-			m_bounds.x = m_allocation.x + m_marginLeft;
-			break;
-		case TC:
-		case CC:
-		case BC:
-			m_bounds.x = m_allocation.x + std::max(0, (m_allocation.width - m_reqWidth) / 2);
-			break;
-		case TR:
-		case CR:
-		case BR:
-			m_bounds.x = m_allocation.x + m_allocation.width - m_reqWidth - m_marginRight;
-			break;
-		}
-		m_bounds.width = m_reqWidth - m_marginRight - m_marginLeft;
-	}
-	if (m_reqHeight == -1) {
-		m_bounds.height = m_boxHeight.toPixels(m_allocation.height) - m_marginTop - m_marginBottom;
-		m_bounds.y = m_allocation.y + m_marginTop;
-	} else {
-		switch (m_placement) {
-		case TL:
-		case TC:
-		case TR:
-			m_bounds.y = m_allocation.y + m_marginTop;
-			break;
-		case CL:
-		case CC:
-		case CR:
-			m_bounds.y = m_allocation.y + std::max(0, (m_allocation.height - m_reqHeight) / 2);
-			break;
-		case BL:
-		case BC:
-		case BR:
-			m_bounds.y = m_allocation.y + m_allocation.height - m_reqHeight - m_marginBottom;
-			break;
-		}
-		m_bounds.height = m_reqHeight - m_marginTop - m_marginBottom;
-	}
-}
+	Margins margin = m_margin;
+	margin.add(styleMargin);
+	Margins padding = m_padding;
+	padding.add(stylePadding);
 
-void Element::setAllocation(BoundingBox const &newBB)
+	if (m_requisition.width == -1) {
+		m_bounds.width = m_boxWidth.toPixels(m_allocation.width) - margin.left - margin.right;
+		m_bounds.x = m_allocation.x + margin.left;
+	} else {
+		switch (m_placement) {
+		case TL:
+		case CL:
+		case BL:
+			m_bounds.x = m_allocation.x + margin.left;
+			break;
+		case TC:
+		case CC:
+		case BC:
+			m_bounds.x = m_allocation.x + std::max(0, (m_allocation.width - m_requisition.width) / 2);
+			break;
+		case TR:
+		case CR:
+		case BR:
+			m_bounds.x = m_allocation.x + m_allocation.width - m_requisition.width - margin.right;
+			break;
+		}
+		m_bounds.width = m_requisition.width - margin.right - margin.left;
+	}
+	if (m_requisition.height == -1) {
+		m_bounds.height = m_boxHeight.toPixels(m_allocation.height) - margin.top - margin.bottom;
+		m_bounds.y = m_allocation.y + margin.top;
+	} else {
+		switch (m_placement) {
+		case TL:
+		case TC:
+		case TR:
+			m_bounds.y = m_allocation.y + margin.top;
+			break;
+		case CL:
+		case CC:
+		case CR:
+			m_bounds.y = m_allocation.y + std::max(0, (m_allocation.height - m_requisition.height) / 2);
+			break;
+		case BL:
+		case BC:
+		case BR:
+			m_bounds.y = m_allocation.y + m_allocation.height - m_requisition.height - margin.bottom;
+			break;
+		}
+		m_bounds.height = m_requisition.height - margin.top - margin.bottom;
+	}
+
+	m_contents = m_bounds.applyMargins(padding);
+}*/
+
+/*void Element::setAllocation(BoundingBox const &newBB)
 {
 	std::clog << "Element::setAllocation " << newBB << "\n";
 	m_allocation = newBB;
@@ -79,13 +87,8 @@ void Element::setAllocation(BoundingBox const &newBB)
 
 void Element::onSetAllocation()
 {
-}
+}*/
 
-void Element::getRequisition(int &reqWidth, int &reqHeight)
-{
-	reqWidth = m_reqWidth;
-	reqHeight = m_reqHeight;
-}
 
 void Element::onHoverEnter() {
 	onHoverEnterEvent(shared_from_this());
@@ -156,7 +159,7 @@ bool Element::handleEvent(sf::Event const &event)
 	return handled;
 }
 
-void Element::setWidth(Size const &width) 
+/*void Element::setWidth(Size const &width) 
 {
 	m_boxWidth = width;
 }
@@ -164,7 +167,7 @@ void Element::setWidth(Size const &width)
 void Element::setHeight(Size const &height)
 {
 	m_boxHeight = height;
-}
+}*/
 
 //============================
 // State query and manipulation

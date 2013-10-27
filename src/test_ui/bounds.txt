@@ -15,3 +15,91 @@ SliderKnob: public Button
 {
 render() { engine.renderSliderKnob(); }
 }
+
+
+getRequisition() -> ...
+layout(Allocation) -> doPlacement() -> doLayout() -> layout() ...
+
+Measure step:
+getRequisition() -> Requisition (+ margins and padding)
+
+Positioning step:
+layout()
+calculate bounding box and content box from:
+	- Placement property
+	- fixedX, fixedY (if placement = custom)
+	- requested width and height
+	- style padding and margins (style.getMargins() ...)
+	- padding and margins
+	
+	
+Positioning/Sizing:
+- stretch widget to use all available space / a fraction of the available space
+- set fixed width/height
+- set fixed position
+- set position (TL, TR, BR, BC...): centering, alignment
+
+
+-> calculateSizeHint() -> SizeHint x2, ResizeMode
+	- SizeHint:
+		- AUTO: no hint (stretch)
+		- minimum size in pixels
+	
+minimumSize (AUTO, pixels)
+maximumSize (AUTO, pixels)
+
+button:
+	size.height = 10,Minimum Preferred
+	size.width = -1,Expand
+	
+panel:
+	size.width = -1,Expand
+	size.height = -1,Expand
+	
+HBox:
+	size.width = -1,Expand
+	size.height = -1,Expand
+	
+	item[0].percent = 30% -> panel
+	item[1].percent = 70% -> panel
+	
+verticalSpacer:
+	size.width = -1, Expand
+	size.height = -1, Expand
+	
+
+SizePolicy:
+	width: Expand, Preferred, Fixed
+	height: ...
+
+
+- sizePolicy: SizePolicy
+- fixedSize
+- desiredSize
+- contentsSize
+- minimumSize
+- maximumSize
+- additionalMargins
+- additionalPadding
+
+getDesiredSize default implementation:
+	desiredSize = Size()
+	desiredSize = getContentsSize().expand(engine.getXXXMargin()).expand(additionalMargin)
+
+	
+measure:
+	if hasFixedWidth then 
+		width <- min(contentsWidth, fixedWidth)
+	else if hasDesiredWidth and horizonalSizePolicy = Preferred then
+		width <- min(contentsWidth, desiredWidth)
+	else 
+		width <- contentsWidth
+	end if
+	
+arrange: (size, contentsSize, position) 
+	
+
+	
+allocation = bounds
+
+	

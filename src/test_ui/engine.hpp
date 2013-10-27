@@ -16,6 +16,13 @@ class Button;
 class Panel;
 class TextBox;
 
+enum ElementType
+{
+	ET_Panel,
+	ET_Button,
+	ET_TextBox
+};
+
 class Engine
 {
 public:
@@ -27,6 +34,10 @@ public:
 	virtual void drawTextBox(sf::RenderTarget &renderTarget, TextBox &textBox) = 0;
 
 	// TODO getPanelMargins, getButtonMargins, etc.
+
+	virtual void getButtonMargins(Margins &margin, Margins &padding) = 0;
+	virtual void getPanelMargins(Margins &margin, Margins &padding) = 0;
+	virtual void getTextBoxMargins(Margins &margin, Margins &padding) = 0;
 
 	virtual void getCheckboxSize(int &width, int &height) = 0;
 	virtual int getSliderHeight() = 0;

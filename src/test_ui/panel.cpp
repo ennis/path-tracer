@@ -14,6 +14,8 @@ Panel::Panel(Panel::private_key) : m_orientation(VERTICAL), m_spacing(NO_SPACING
 Panel::Panel(private_key, Orientation orientation, Spacing spacing) : m_orientation(orientation), m_spacing(spacing)
 {
 	std::clog << "Panel(Orientation, Spacing)\n";
+	setMargin(Margins(0, 0, 0, 0));
+	setPadding(Margins(1, 1, 1, 1));
 }
 
 Panel::~Panel()
@@ -40,36 +42,68 @@ void Panel::setOrientation(Orientation orientation)
 	m_orientation = orientation;
 }
 
-void Panel::onSetAllocation()
+Size Panel::getDesiredSize(Engine &engine)
 {
-	// update maximum widget height
-	int maxChildSize;
-	if (m_orientation == VERTICAL) {
-		maxChildSize = m_bounds.height / static_cast<int>(m_children.size());
-	} else {
-		maxChildSize = m_bounds.width / static_cast<int>(m_children.size());
-	}
-	// update bounding boxes of child elements
-	int bbx = m_bounds.x + m_paddingLeft;
-	int bby = m_bounds.y + m_paddingTop;
+	return Size(-1, -1);
+}
+
+/*void Panel::calculateRequisition(Engine &engine)
+{
+	Margins margin, padding;
+	engine.getPanelMargins(margin, padding);
+	boxRequisition(margin, padding);
+}*/
+
+void Panel::doLayout(Engine &engine)
+{
+	Margins margin, padding;
+	engine.getPanelMargins(margin, padding);
+
+	int totalHeight = m_bounds.height;
+	int remHeight = totalHeight;
+
+	// 0 : remove padding and spacing
+	remHeight -= padding.top + padding.bottom;
+	// 2px spacing (XXX engine.getPanelItemSpacing)
+	remHeight -= m_children.size() < 1 ? 0 : m_children.size() * 2;
+
+	// pass 1 : assign vertical space to children with a fixed size
 	for (auto child : m_children) {
+		Size fixed = child->getFixedSize();
+		if (fixed.hasHeight()) {
+			remHeight -= fixed.height;
+		}
+	}
+	
+	// update bounding boxes of child elements
+	int bbx = m_bounds.x + padding.left;
+	int bby = m_bounds.y + padding.top;
+	int contentWidth = m_bounds.width - padding.left - padding.right;
+
+	// pass 2 : assign remaining vertical space to children 
+	for (auto child : m_children) {
+		Size fixed = child->getFixedSize();
 		BoundingBox childBB;
-		int reqWidth, reqHeight;
-		child->calculateRequisition();
-		child->getRequisition(reqWidth, reqHeight);
 		childBB.x = bbx;
 		childBB.y = bby;
-		if (m_orientation == VERTICAL) {
-			childBB.width = m_bounds.width - m_paddingLeft - m_paddingRight;
-			childBB.height = (reqHeight == -1) ? maxChildSize : reqHeight;
-			bby += childBB.height;
-		} else {
-			childBB.width = (reqWidth == -1) ? maxChildSize : reqWidth;
-			childBB.height = m_bounds.height - m_paddingBottom - m_paddingTop;
-			bbx += childBB.width;
-		}
 
-		child->setAllocation(childBB);
+		if (fixed.hasWidth()) {
+			childBB.width = fixed.width;
+		} else {
+			Size desired = child->getDesiredSize(engine);
+			SizePolicy horizontalPolicy = child->getHorizontalSizePolicy();
+			if (desired.hasWidth() && horizontalPolicy == SizePolicy::Preferred) {
+				childBB.width = desired.width;
+			} else {
+				childBB.width = contentWidth;
+			}
+		}
+	
+		if (fixed.hasHeight()) {
+			childBB.height = fixed.height;
+		} else {
+			childBB.height = 10;	// XXX
+		}
 	}
 }
 

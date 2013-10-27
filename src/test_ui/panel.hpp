@@ -27,13 +27,13 @@ public:
 	virtual ~Panel();
 
 	virtual void render(sf::RenderTarget &renderTarget, Engine &engine);
-	virtual void onSetAllocation();
-	//virtual void calculateRequisition();
-	//virtual void setSpacing(Spacing spacing);
 	virtual void setOrientation(Orientation orientation);
 	
 	Panel(private_key);
 	Panel(private_key, Orientation orientation, Spacing spacing);
+
+	virtual Size getDesiredSize(Engine &engine);
+	virtual void doLayout(Engine &engine);
 
 	static Ptr create() {
 		return std::make_shared<Panel>(private_key());

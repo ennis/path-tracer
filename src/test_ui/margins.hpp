@@ -1,7 +1,6 @@
 #ifndef MARGINS_HPP
 #define MARGINS_HPP
 
-
 namespace ui
 {
 

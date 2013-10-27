@@ -23,6 +23,10 @@ public:
 	virtual void drawTextBox(sf::RenderTarget &renderTarget, TextBox &textBox);
 	//virtual void drawCheckbox(sf::RenderTarget &renderTarget, BoundingBox const &bounds, int state, bool checked);
 	//virtual void drawButtonLabel(sf::RenderTarget &renderTarget, BoundingBox const &bounds, int state, std::string const &text);
+	
+	virtual void getButtonMargins(Margins &margin, Margins &padding);
+	virtual void getPanelMargins(Margins &margin, Margins &padding);
+	virtual void getTextBoxMargins(Margins &margin, Margins &padding);
 
 	virtual void getCheckboxSize(int &width, int &height);
 	virtual int getSliderHeight();

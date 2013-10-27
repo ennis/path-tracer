@@ -2,6 +2,10 @@
 #define BOUNDINGBOX_HPP
 
 #include <ostream>
+#include "margins.hpp"
+
+namespace ui
+{
 
 struct BoundingBox
 {
@@ -13,13 +17,21 @@ struct BoundingBox
 	x(x_), y(y_), width(width_), height(height_)
 	{}
 
+	BoundingBox applyMargins(Margins const &margins) {
+		return BoundingBox(x + margins.left, y + margins.top, 
+				std::max(0, width - margins.left - margins.right), 
+				std::max(0, height - margins.top - margins.bottom));
+	}
+
 	int x;
 	int y;
 	int width;
 	int height;
 };
 
-static inline std::ostream &operator<<(std::ostream &os, BoundingBox const &bb)
+}
+
+static inline std::ostream &operator<<(std::ostream &os, ui::BoundingBox const &bb)
 {
 	os << "(" << bb.x << "," << bb.y << ":" <<bb.width << "x" << bb.height << ")";
 	return os;

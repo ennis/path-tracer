@@ -26,8 +26,29 @@ void UI::add(Element::Ptr element)
 void UI::doLayout()
 {
 	if (m_rootPanel != nullptr) {
-		m_rootPanel->calculateRequisition();
-		m_rootPanel->setAllocation(BoundingBox(0, 0, m_width, m_height));
+		Size fixed = m_rootPanel->getFixedSize();
+		Size desired = m_rootPanel->getDesiredSize(*m_engine);
+		int x = 0;
+		int y = 0;
+		int width, height;
+
+		if (fixed.hasWidth()) {
+			width = std::min(m_width, fixed.width);
+		} else if (desired.hasWidth() && m_rootPanel->getHorizontalSizePolicy() == SizePolicy::Preferred) {
+			width = std::min(m_width, desired.width);
+		} else {
+			width = m_width;
+		}
+
+		if (fixed.hasHeight()) {
+			height = std::min(m_height, fixed.height);
+		} else if (desired.hasHeight() && m_rootPanel->getVerticalSizePolicy() == SizePolicy::Preferred) {
+			height = std::min(m_height, desired.height);
+		} else {
+			height = m_height;
+		}
+
+		m_rootPanel->setBounds(BoundingBox(x, y, width, height));
 	}
 }
 

@@ -9,28 +9,28 @@
 
 namespace ui
 {
-	class Button : public Element
-	{
-		struct private_key{};
-	public:
-		typedef std::shared_ptr<Button> Ptr;
 
-		~Button()
-		{}
+class Button : public Element
+{
+	struct private_key{};
+public:
+	typedef std::shared_ptr<Button> Ptr;
 
-		virtual void render(sf::RenderTarget &renderTarget, Engine &engine);
-		virtual void onSetAllocation();
+	~Button()
+	{}
+
+	virtual void render(sf::RenderTarget &renderTarget, Engine &engine);
 		
-		Button(private_key, std::string const &label);
+	Button(private_key, std::string const &label);
 
-		static Button::Ptr create(std::string const &label) {
-			return std::make_shared<Button>(private_key(), label);
-		}
+	static Button::Ptr create(std::string const &label) {
+		return std::make_shared<Button>(private_key(), label);
+	}
 
-	private:
+private:
 
-		TextBox::Ptr m_label;
-	};
+	TextBox::Ptr m_label;
+};
 }
 
 #endif

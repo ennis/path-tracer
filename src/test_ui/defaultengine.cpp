@@ -14,9 +14,9 @@ const sf::Color DefaultEngine::buttonBackgroundHoverColor = sf::Color::Blue;
 const sf::Color DefaultEngine::buttonForegroundColor = sf::Color::Black;
 const sf::Color DefaultEngine::buttonForegroundHoverColor = sf::Color::Black;
 const sf::Color DefaultEngine::panelBorderColor = sf::Color();
-const sf::Color DefaultEngine::panelBorderHoverColor = sf::Color();
+const sf::Color DefaultEngine::panelBorderHoverColor = sf::Color(54, 31, 171, 160);
 const sf::Color DefaultEngine::panelBackgroundColor = sf::Color(54, 31, 171, 160);
-const sf::Color DefaultEngine::panelBackgroundHoverColor = sf::Color();
+const sf::Color DefaultEngine::panelBackgroundHoverColor =  sf::Color(54, 31, 171, 210);
 
 DefaultEngine::~DefaultEngine()
 {
@@ -35,7 +35,8 @@ void DefaultEngine::drawPanelFrame(sf::RenderTarget &renderTarget, Panel &panel)
 {
 	// TODO draw a semitransparent rectangle
 	BoundingBox const &bb = panel.getBounds();
-	drawFilledRectangle(renderTarget, bb.x, bb.y, bb.width, bb.height, panelBackgroundColor);
+	bool hover = panel.testState(Element::HOVER);
+	drawFilledRectangle(renderTarget, bb.x, bb.y, bb.width, bb.height, hover ? panelBackgroundHoverColor : panelBackgroundColor);
 }
 
 /*void DefaultEngine::drawSlider(sf::RenderTarget &renderTarget, BoundingBox const &bounds, int state, int sliderPosition)
@@ -105,6 +106,24 @@ void DefaultEngine::drawText(sf::RenderTarget &renderTarget, int x, int y, int f
 	textBox.setCharacterSize(18);
 	textBox.setColor(color);
 	renderTarget.draw(textBox);
+}
+
+void DefaultEngine::getButtonMargins(Margins &margin, Margins &padding) 
+{
+	margin = Margins(1,1,1,1);
+	padding = Margins(1,1,1,1);
+}
+
+void DefaultEngine::getPanelMargins(Margins &margin, Margins &padding)
+{
+	margin = Margins(0,0,0,0);
+	padding = Margins(1,1,1,1);
+}
+
+void DefaultEngine::getTextBoxMargins(Margins &margin, Margins &padding)
+{
+	margin = Margins(0,0,0,0);
+	padding = Margins(0,0,0,0);
 }
 
 }

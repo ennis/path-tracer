@@ -31,8 +31,6 @@ static inline int clamp(int value, int max) {
 ui::Button::Ptr createSmallButton(std::string label)
 {
 	ui::Button::Ptr b = ui::Button::create(label);
-	b->setWidth(ui::Size::px(80));
-	b->setHeight(ui::Size::px(20));
 	return b;
 }
 
@@ -69,33 +67,36 @@ int main()
 
 	auto textbox = TextBox::create("Hello world!");
 
-	button1->setPlacement(Element::CC);
+	/*button1->setPlacement(Element::CC);
 	button2->setPlacement(Element::TR);
-	button3->setPlacement(Element::BL);
+	button3->setPlacement(Element::BL);*/
 
-	subpanel1->setHeight(30);
+	//subpanel1->setHeight(30);
 	subpanel1->add(button41);
 	subpanel1->add(button42);
 	//subpanel1->add(button43);
 	
-	subpanel2->setHeight(30);
+	//subpanel2->setHeight(30);
 	subpanel2->add(button51);
 	subpanel2->add(button52);
 	//subpanel2->add(button43);
 
-	panel->add(subpanel1);
-	panel->add(subpanel2);
+	//panel->add(subpanel1);
+	//panel->add(subpanel2);
 	panel->add(button1);
 	panel->add(button2);
 	panel->add(button3);
 	panel->add(textbox);
-	panel->setWidth(ui::Size::px(200));
+	//panel->setWidth(ui::Size::px(200));
+
+	panel->setSizePolicy(SizePolicy::Preferred, SizePolicy::Expand);
+	panel->setFixedSize(Size(200, -1));
 
 	ui->add(panel);
 
 	button1->onClickEvent.add([&](Element::Ptr, int, int) { std::cout << "Button clicked!\n"; });
-	button1->onHoverEnterEvent.add([](Element::Ptr) { std::cout << "Hover enter\n"; });
-	button1->onHoverLeaveEvent.add([](Element::Ptr) { std::cout << "Hover exit\n"; });
+	panel->onHoverEnterEvent.add([](Element::Ptr) { std::cout << "Hover enter\n"; });
+	panel->onHoverLeaveEvent.add([](Element::Ptr) { std::cout << "Hover exit\n"; });
 
 
     // run the program as long as the window is open
@@ -114,12 +115,12 @@ int main()
 				window.setView(sf::View(sf::FloatRect(0.f, 0.f, static_cast<float>(event.size.width), static_cast<float>(event.size.height))));
 				ui->setSize(event.size.width, event.size.height);
 			} else if (event.type == sf::Event::MouseMoved) {
-				std::cout << "MouseMoved " << event.mouseMove.x << ',' << event.mouseMove.y << '\n';
+				//std::cout << "MouseMoved " << event.mouseMove.x << ',' << event.mouseMove.y << '\n';
 				// TODO UI.mouseMoved
 			} else if (event.type == sf::Event::MouseButtonPressed) {
-				std::cout << "MouseButtonPressed " << event.mouseButton.x << ',' << event.mouseButton.y << ':' << event.mouseButton.button << '\n';
+				//std::cout << "MouseButtonPressed " << event.mouseButton.x << ',' << event.mouseButton.y << ':' << event.mouseButton.button << '\n';
 			} else if (event.type == sf::Event::MouseButtonReleased) {
-				std::cout << "MouseButtonReleased " << event.mouseButton.x << ',' << event.mouseButton.y << ':' << event.mouseButton.button << '\n';
+				//std::cout << "MouseButtonReleased " << event.mouseButton.x << ',' << event.mouseButton.y << ':' << event.mouseButton.button << '\n';
 			}
 			ui->onEvent(event);
         }

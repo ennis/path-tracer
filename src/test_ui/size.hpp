@@ -2,63 +2,54 @@
 #define SIZE_HPP
 
 #include <iostream>
+#include "margins.hpp"
 
 namespace ui
 {
 
 struct Size
 {
-	enum SizeType {
-		PERCENTAGE,
-		PIXELS,
-		AUTO
-	};
-
-	SizeType type;
-	int value;		// -1 is auto or 100%
-
-	Size() : value(-1), type(AUTO)
+	Size() : width(-1), height(-1) 
 	{}
 
-	Size(int v, SizeType t = PIXELS) : value(v), type(t)
+	Size(int width_, int height_) : width(width_), height(height_)
 	{}
 
-	static Size percentage(int percent) {
-		Size ret;
-		ret.type = PERCENTAGE;
-		ret.value = percent;
-		return ret;
+	bool hasWidth() const {
+		return width != -1;
 	}
 
-	static Size px(int pixels) {
-		Size ret;
-		ret.type = PIXELS;
-		ret.value = pixels;
-		return ret;
+	bool hasHeight() const {
+		return height != -1;
 	}
 
-	int toPixels(int containingBlockSize) {
-		if (type == PERCENTAGE) {
-			return containingBlockSize * value / 100;
-		} else if (type == PIXELS) {
-			return value;
-		} else {
-			return containingBlockSize;
+	Size &expand(Margins const &margins) {
+		if (hasWidth()) {
+			width += margins.left + margins.right;
+		}
+		if (hasHeight()) {
+			height += margins.top + margins.bottom;
 		}
 	}
-
-	void dump(std::ostream &os) const {
-		if (value == -1) {
-			os << "auto";
-		} else {
-			os << value << (type == PIXELS) ? "px" : "%";
-		}
-	}
-
-	bool operator==(Size const &rhs) const {
-		return value == rhs.value && type == rhs.type;
-	}
+	
+	int width;
+	int height;
 };
 
 }
+
+static std::ostream &operator<<(std::ostream &os, ui::Size const &size) {
+	if (size.hasWidth()) {
+		os << size.width;
+	} else {
+		os << "<auto>";
+	}
+	os << 'x';
+	if (size.hasHeight()) {
+		os << size.height;
+	} else {
+		os << "<auto>";
+	}
+}
+
 #endif
