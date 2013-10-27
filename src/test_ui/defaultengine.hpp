@@ -31,6 +31,8 @@ public:
 	virtual void getCheckboxSize(int &width, int &height);
 	virtual int getSliderHeight();
 	virtual void getMinButtonSize(int &width, int &height);
+	
+	virtual Size measureText(std::string const &str);
 
 	DefaultEngine(private_key, sf::Font const &defaultFont) : m_defaultFont(defaultFont)
 	{}

@@ -17,6 +17,8 @@ public:
 	virtual ~TextBox();
 	virtual void render(sf::RenderTarget &renderTarget, Engine &engine);
 	
+	virtual Size getDesiredSize(Engine &engine);
+	
 	TextBox(private_key, std::string const &str) : 
 		m_string(str)
 	{}

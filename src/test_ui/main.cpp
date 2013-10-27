@@ -92,6 +92,8 @@ int main()
 	panel->setSizePolicy(SizePolicy::Preferred, SizePolicy::Expand);
 	panel->setFixedSize(Size(200, -1));
 
+	button1->setSizePolicy(SizePolicy::Expand, SizePolicy::Preferred);
+
 	ui->add(panel);
 
 	button1->onClickEvent.add([&](Element::Ptr, int, int) { std::cout << "Button clicked!\n"; });

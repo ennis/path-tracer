@@ -23,6 +23,9 @@ public:
 		
 	Button(private_key, std::string const &label);
 
+	virtual Size getDesiredSize(Engine &engine);
+	virtual void doLayout(Engine &engine);
+
 	static Button::Ptr create(std::string const &label) {
 		return std::make_shared<Button>(private_key(), label);
 	}

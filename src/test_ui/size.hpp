@@ -30,6 +30,7 @@ struct Size
 		if (hasHeight()) {
 			height += margins.top + margins.bottom;
 		}
+		return *this;
 	}
 	
 	int width;

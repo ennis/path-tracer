@@ -58,6 +58,8 @@ public:
 		m_requisition(),
 		m_bounds(BoundingBox()),
 		m_contents(BoundingBox()),
+		m_verticalSizePolicy(SizePolicy::Preferred),
+		m_horizontalSizePolicy(SizePolicy::Preferred),
 		m_padding(),
 		m_margin(),
 		m_parent()

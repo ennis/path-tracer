@@ -83,29 +83,31 @@ void Panel::doLayout(Engine &engine)
 	// pass 2 : assign remaining vertical space to children 
 	for (auto child : m_children) {
 		Size fixed = child->getFixedSize();
+		Size desired = child->getDesiredSize(engine);
+		SizePolicy horizontalPolicy = child->getHorizontalSizePolicy();
+		SizePolicy verticalPolicy = child->getVerticalSizePolicy();
 		BoundingBox childBB;
 		childBB.x = bbx;
 		childBB.y = bby;
 
 		if (fixed.hasWidth()) {
 			childBB.width = fixed.width;
+		} else if (desired.hasWidth() && horizontalPolicy == SizePolicy::Preferred) {
+			childBB.width = desired.width;
 		} else {
-			Size desired = child->getDesiredSize(engine);
-			SizePolicy horizontalPolicy = child->getHorizontalSizePolicy();
-			if (desired.hasWidth() && horizontalPolicy == SizePolicy::Preferred) {
-				childBB.width = desired.width;
-			} else {
-				childBB.width = contentWidth;
-			}
+			childBB.width = contentWidth;
 		}
 	
 		if (fixed.hasHeight()) {
 			childBB.height = fixed.height;
+		} else if (desired.hasHeight() && verticalPolicy == SizePolicy::Preferred) {
+			childBB.height = desired.height;
 		} else {
-			childBB.height = 10;	// XXX
+			childBB.height = remHeight / m_children.size();	// XXX
 		}
 
 		child->layout(engine, childBB);
+		bby += childBB.height + 2;
 	}
 }
 

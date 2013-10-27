@@ -126,4 +126,10 @@ void DefaultEngine::getTextBoxMargins(Margins &margin, Margins &padding)
 	padding = Margins(0,0,0,0);
 }
 
+Size DefaultEngine::measureText(std::string const &str)
+{
+	sf::Text textBox(str, m_defaultFont);
+	return Size(textBox.getGlobalBounds().width, textBox.getGlobalBounds().height);
+}
+
 }

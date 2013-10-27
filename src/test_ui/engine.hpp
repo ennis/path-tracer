@@ -2,6 +2,7 @@
 #define ENGINE_HPP
 
 #include "boundingbox.hpp"
+#include "size.hpp"
 
 #include <SFML/Graphics.hpp>
 
@@ -42,6 +43,8 @@ public:
 	virtual void getCheckboxSize(int &width, int &height) = 0;
 	virtual int getSliderHeight() = 0;
 	virtual void getMinButtonSize(int &width, int &height) = 0;
+
+	virtual Size measureText(std::string const &str) = 0;
 
 protected:
 };

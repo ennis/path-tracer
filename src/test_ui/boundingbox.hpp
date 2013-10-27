@@ -17,7 +17,7 @@ struct BoundingBox
 	x(x_), y(y_), width(width_), height(height_)
 	{}
 
-	BoundingBox applyMargins(Margins const &margins) {
+	BoundingBox contract(Margins const &margins) {
 		return BoundingBox(x + margins.left, y + margins.top, 
 				std::max(0, width - margins.left - margins.right), 
 				std::max(0, height - margins.top - margins.bottom));
