@@ -7,8 +7,6 @@
 #include "boundingbox.hpp"
 #include "size.hpp"
 #include "margins.hpp"
-#include "requisition.hpp"
-#include "sizepolicy.hpp"
 
 #include <SFML/Graphics.hpp>
 
@@ -55,7 +53,6 @@ public:
 		m_class(""), 
 		m_id(""),
 		m_state(VISIBLE),
-		m_requisition(),
 		m_bounds(BoundingBox()),
 		m_contents(BoundingBox()),
 		m_padding(),
@@ -200,9 +197,6 @@ protected:
 
 	// State
 	int m_state;
-
-	// requisitions
-	Requisition m_requisition;
 
 	// element bounds (== hitbox)
 	BoundingBox m_bounds;
