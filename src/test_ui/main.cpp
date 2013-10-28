@@ -10,6 +10,8 @@
 #include "ui.hpp"
 #include "panel.hpp"
 #include "button.hpp"
+#include "checkbox.hpp"
+#include "spacer.hpp"
 
 #define glCheck(call) { call; glCheckError(#call); }
 
@@ -53,20 +55,21 @@ int main()
 	auto panel = Panel::create();
 	auto subpanel1 = Panel::create(Panel::HORIZONTAL, Panel::NO_SPACING);
 	auto subpanel2 = Panel::create(Panel::HORIZONTAL, Panel::NO_SPACING);
-	auto button1 = createSmallButton("Button 1");
-	auto button2 = createSmallButton("Button 2");
-	auto button3 = createSmallButton("Button 3");
+	auto button1 = Button::create("Button 1");
+	auto button2 = Button::create("Button 2");
+	auto button3 = Button::create("Button 3");
 	
-	auto button41 = createSmallButton("Button 4|1");
-	auto button42 = createSmallButton("Button 4|2");
-	auto button43 = createSmallButton("Button 4|3");
+	auto button41 = Button::create("Button 4|1");
+	auto button42 = Button::create("Button 4|2");
+	auto button43 = Button::create("Button 4|3");
 	
-	auto button51 = createSmallButton("Button 5|1");
-	auto button52 = createSmallButton("Button 5|2");
-	auto button53 = createSmallButton("Button 5|3");
+	auto button51 = Button::create("Button 5|1");
+	auto button52 = Button::create("Button 5|2");
+	auto button53 = Button::create("Button 5|3");
 
 	auto textbox = TextBox::create("Hello world!");
-
+	auto checkbox = CheckBox::create();
+	
 	/*button1->setPlacement(Element::CC);
 	button2->setPlacement(Element::TR);
 	button3->setPlacement(Element::BL);*/
@@ -86,20 +89,24 @@ int main()
 	panel->add(button1);
 	panel->add(button2);
 	panel->add(button3);
+	panel->add(Spacer::create());
+	panel->add(checkbox);
 	panel->add(textbox);
 	//panel->setWidth(ui::Size::px(200));
 
-	panel->setSizePolicy(SizePolicy::Preferred, SizePolicy::Expand);
-	panel->setFixedSize(Size(200, -1));
-
-	button1->setSizePolicy(SizePolicy::Expand, SizePolicy::Preferred);
+	button1->setSize(Size(Size::FILL, Size::ADJUST));
+	panel->setSize(Size(200, Size::FILL));
 
 	ui->add(panel);
+	int numClicks = 0;
 
 	button1->onClickEvent.add([&](Element::Ptr, int, int) { std::cout << "Button clicked!\n"; });
 	panel->onHoverEnterEvent.add([](Element::Ptr) { std::cout << "Hover enter\n"; });
 	panel->onHoverLeaveEvent.add([](Element::Ptr) { std::cout << "Hover exit\n"; });
-
+	checkbox->onClickEvent.add([&checkbox, &textbox, &numClicks](Element::Ptr, int, int) { 
+		std::cout << "CheckBox clicked, checked=" << checkbox->isChecked() << "\n";
+		textbox->setText("Clicks: " + std::to_string(++numClicks));
+	});
 
     // run the program as long as the window is open
     while (window.isOpen())

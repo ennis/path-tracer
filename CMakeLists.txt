@@ -8,7 +8,7 @@ if (${WIN32})
 set(SFML_ROOT "C:\\Program Files\\SFML")
 list(APPEND SFML_REQUIRED main)
 else()
-ADD_DEFINITIONS(-std=c++11 -msse4.2)
+add_definitions(-std=c++11 -msse4.2)
 endif()
 
 find_package(SFML 2 COMPONENTS ${SFML_REQUIRED} REQUIRED)
@@ -30,7 +30,6 @@ file(
 	src/test_ui/*.cpp
 	src/test_ui/*.hpp
 )
-
 
 include_directories(${SFML_INCLUDE_DIR} ${OPENGL_INCLUDE_DIRS})
 link_directories(${OPENGL_LIBRARY_DIRS})

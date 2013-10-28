@@ -16,6 +16,7 @@ class Element;
 class Button;
 class Panel;
 class TextBox;
+class CheckBox;
 
 enum ElementType
 {
@@ -33,6 +34,7 @@ public:
 	virtual void drawPanelFrame(sf::RenderTarget &renderTarget, Panel &panel) = 0;
 	//virtual void drawSlider(sf::RenderTarget &renderTarget, BoundingBox const &bounds, int state, int sliderPosition) = 0;
 	virtual void drawTextBox(sf::RenderTarget &renderTarget, TextBox &textBox) = 0;
+	virtual void drawCheckBox(sf::RenderTarget &renderTarget, CheckBox &checkBox) = 0;
 
 	// TODO getPanelMargins, getButtonMargins, etc.
 
@@ -40,11 +42,12 @@ public:
 	virtual void getPanelMargins(Margins &margin, Margins &padding) = 0;
 	virtual void getTextBoxMargins(Margins &margin, Margins &padding) = 0;
 
-	virtual void getCheckboxSize(int &width, int &height) = 0;
+	virtual Size getCheckboxSize() = 0;
 	virtual int getSliderHeight() = 0;
 	virtual void getMinButtonSize(int &width, int &height) = 0;
 
 	virtual Size measureText(std::string const &str) = 0;
+	
 
 protected:
 };

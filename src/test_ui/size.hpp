@@ -9,18 +9,21 @@ namespace ui
 
 struct Size
 {
-	Size() : width(-1), height(-1) 
+	static const int ADJUST = -2;
+	static const int FILL = -1;
+	
+	Size() : width(FILL), height(FILL) 
 	{}
 
 	Size(int width_, int height_) : width(width_), height(height_)
 	{}
 
 	bool hasWidth() const {
-		return width != -1;
+		return width >= 0;
 	}
 
 	bool hasHeight() const {
-		return height != -1;
+		return height >= 0;
 	}
 
 	Size &expand(Margins const &margins) {
@@ -39,18 +42,26 @@ struct Size
 
 }
 
+static void printSizeComponent(std::ostream &os, int value)
+{
+	switch (value) {
+		case -2:
+			os << "Adjust";
+			break;
+		case -1:
+			os << "Fill";
+			break;
+		default:
+			os << value;
+			break;
+	}
+}
+
 static std::ostream &operator<<(std::ostream &os, ui::Size const &size) {
-	if (size.hasWidth()) {
-		os << size.width;
-	} else {
-		os << "<auto>";
-	}
-	os << 'x';
-	if (size.hasHeight()) {
-		os << size.height;
-	} else {
-		os << "<auto>";
-	}
+	os << "width:";
+	printSizeComponent(os, size.width);
+	os << " height:";
+	printSizeComponent(os, size.height);
 }
 
 #endif

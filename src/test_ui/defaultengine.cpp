@@ -3,6 +3,7 @@
 #include "button.hpp"
 #include "textbox.hpp"
 #include "panel.hpp"
+#include "checkbox.hpp"
 
 namespace ui
 {
@@ -17,6 +18,13 @@ const sf::Color DefaultEngine::panelBorderColor = sf::Color();
 const sf::Color DefaultEngine::panelBorderHoverColor = sf::Color(54, 31, 171, 160);
 const sf::Color DefaultEngine::panelBackgroundColor = sf::Color(54, 31, 171, 160);
 const sf::Color DefaultEngine::panelBackgroundHoverColor =  sf::Color(54, 31, 171, 210);
+
+const sf::Color DefaultEngine::checkBoxBorderColor = sf::Color(112, 244, 198);
+const sf::Color DefaultEngine::checkBoxBackgroundColor = sf::Color(112, 167, 244);
+const sf::Color DefaultEngine::checkBoxBackgroundHoverColor = sf::Color(171, 201, 244);
+const sf::Color DefaultEngine::checkBoxTickColor = sf::Color(112, 244, 198);
+const Margins DefaultEngine::checkBoxTickPadding = Margins(3, 3, 3, 3);
+const Size DefaultEngine::checkBoxSize = Size(12, 12);
 
 DefaultEngine::~DefaultEngine()
 {
@@ -61,11 +69,9 @@ void DefaultEngine::drawButtonLabel(sf::RenderTarget &renderTarget, BoundingBox 
 	// drawText
 }*/
 
-void DefaultEngine::getCheckboxSize(int &width, int &height)
+Size DefaultEngine::getCheckboxSize()
 {
-	// TODO Dummy
-	width = 8;
-	height = 8;
+	return checkBoxSize;
 }
 
 int DefaultEngine::getSliderHeight()
@@ -130,6 +136,27 @@ Size DefaultEngine::measureText(std::string const &str)
 {
 	sf::Text textBox(str, m_defaultFont);
 	return Size(textBox.getGlobalBounds().width, textBox.getGlobalBounds().height);
+}
+
+void DefaultEngine::drawCheckBox(sf::RenderTarget &renderTarget, CheckBox& checkBox)
+{
+	bool hover = checkBox.testState(Element::HOVER);
+	//bool checked = checkBox.isChecked();
+	BoundingBox bounds = checkBox.getBounds();
+	drawFilledRectangle(renderTarget, 
+		bounds.x, 
+		bounds.y, 
+		bounds.width, 
+		bounds.height, 
+		hover ? checkBoxBackgroundHoverColor : checkBoxBackgroundColor);
+	
+	drawBorders(renderTarget, bounds, 1, 1, 1, 1, checkBoxBorderColor);
+	
+	if (checkBox.isChecked()) {
+		BoundingBox check = bounds.contract(checkBoxTickPadding);
+		drawFilledRectangle(renderTarget, check.x, check.y, check.width, check.height, checkBoxTickColor);
+	}
+	
 }
 
 }

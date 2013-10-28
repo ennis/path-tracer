@@ -72,7 +72,16 @@ SizePolicy:
 	width: Expand, Preferred, Fixed
 	height: ...
 
-
+panel:
+	orientation = Vertical
+	width = Fill (-1)
+	height = Fill (-1)
+	
+button1:
+	width = Fill (-1)
+	height = Adjust (-2)
+	gravity = top | left
+	
 - sizePolicy: SizePolicy
 - fixedSize
 - desiredSize
@@ -83,7 +92,9 @@ SizePolicy:
 - additionalPadding
 
 getDesiredSize default implementation:
-	desiredSize = Size()
+	if (width == Adjust) {
+		size.width = getContentsSize().expand(engine.getXXXmargin()).width
+	} else if (width == 
 	desiredSize = getContentsSize().expand(engine.getXXXMargin()).expand(additionalMargin)
 
 	

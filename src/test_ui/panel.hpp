@@ -1,5 +1,5 @@
-#ifndef PANEL_HPP
-#define PANEL_HPP
+#ifndef VBOX_HPP
+#define VBOX_HPP
 
 #include "container.hpp"
 

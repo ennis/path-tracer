@@ -58,8 +58,6 @@ public:
 		m_requisition(),
 		m_bounds(BoundingBox()),
 		m_contents(BoundingBox()),
-		m_verticalSizePolicy(SizePolicy::Preferred),
-		m_horizontalSizePolicy(SizePolicy::Preferred),
 		m_padding(),
 		m_margin(),
 		m_parent()
@@ -86,36 +84,42 @@ public:
 
 	virtual void doLayout(Engine &engine)
 	{}
-
+	
 	virtual Size getDesiredSize(Engine &engine) {
-		return m_fixedSize;
+		return m_size;
+	}
+	
+	Size measureFromContents(Size const &contents) {
+		Size result;
+		if (m_size.width == Size::ADJUST) {
+			result.width = contents.width;
+		} else if (m_size.width == Size::FILL) {
+			result.width = Size::FILL;
+		} else {
+			result.width = m_size.width;
+		}
+		
+		if (m_size.height == Size::ADJUST) {
+			result.height = contents.height;
+		} else if (m_size.height == Size::FILL) {
+			result.height = Size::FILL;
+		} else {
+			result.height = m_size.height;
+		}
+		
+		return result;		
 	}
 
 	
 	//==================================
 	// fixed size
-	Size getMinimumSize() const {
-		return m_minimumSize;
+
+	Size getSize() const {
+		return m_size;
 	}
 
-	Size getMaximumSize() const {
-		return m_maximumSize;
-	}
-
-	Size getFixedSize() const {
-		return m_fixedSize;
-	}
-
-	void setMinimumSize(Size mini) {
-		m_minimumSize = mini;
-	}
-
-	void setMaximumSize(Size maxi) {
-		m_maximumSize = maxi;
-	}
-
-	void setFixedSize(Size fixed) {
-		m_fixedSize = fixed;
+	void setSize(Size newSize) {
+		m_size = newSize;
 	}
 
 	//==================================
@@ -126,21 +130,6 @@ public:
 
 	void setPadding(Margins const &padding) {
 		m_padding = padding;
-	}
-
-	//==================================
-	// size policy
-	SizePolicy getVerticalSizePolicy() const {
-		return m_verticalSizePolicy;
-	}
-
-	SizePolicy getHorizontalSizePolicy() const {
-		return m_horizontalSizePolicy;
-	}
-
-	void setSizePolicy(SizePolicy horizontal, SizePolicy vertical) {
-		m_horizontalSizePolicy = horizontal;
-		m_verticalSizePolicy = vertical;
 	}
 
 	void setParent(Element::Ptr parent) {
@@ -180,12 +169,14 @@ public:
 	typedef Delegate3<Element::Ptr, int, int> OnClickEvent;
 	typedef Delegate1<Element::Ptr> OnHoverEvent;
 	typedef Delegate2<Element::Ptr, sf::Event::KeyEvent const &> OnKeyEvent;
-
+	typedef Delegate3<Element::Ptr, int, int> OnDragEvent;
+	
 	virtual void onHoverEnter();
 	virtual void onHoverLeave();
 	virtual void onClick(int mouseX, int mouseY);
 	virtual void onKeyDown(sf::Event::KeyEvent const &keyEvent);
 	virtual void onKeyUp(sf::Event::KeyEvent const &keyEvent);
+	virtual void onDrag(int mouseX, int mouseY);
 
 public:
 	// events
@@ -194,6 +185,7 @@ public:
 	OnHoverEvent onHoverLeaveEvent;
 	OnKeyEvent onKeyDownEvent;
 	OnKeyEvent onKeyUpEvent;
+	OnDragEvent onDragEvent;
 
 protected:
 
@@ -217,18 +209,12 @@ protected:
 	// content box
 	BoundingBox m_contents;
 
-	Size m_fixedSize;
-	Size m_minimumSize;
-	Size m_maximumSize;
-
-	SizePolicy m_verticalSizePolicy;
-	SizePolicy m_horizontalSizePolicy;
+	Size m_size;
 
 	// additional margins
 	Margins m_padding;
 	Margins m_margin;
 
-	// TODO fixed positions
 	std::weak_ptr<Element> m_parent;
 
 };

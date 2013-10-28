@@ -44,15 +44,8 @@ void Panel::setOrientation(Orientation orientation)
 
 Size Panel::getDesiredSize(Engine &engine)
 {
-	return Size(-1, -1);
+	return measureFromContents(Size(-1, -1));
 }
-
-/*void Panel::calculateRequisition(Engine &engine)
-{
-	Margins margin, padding;
-	engine.getPanelMargins(margin, padding);
-	boxRequisition(margin, padding);
-}*/
 
 void Panel::doLayout(Engine &engine)
 {
@@ -66,44 +59,48 @@ void Panel::doLayout(Engine &engine)
 	remHeight -= padding.top + padding.bottom;
 	// 2px spacing (XXX engine.getPanelItemSpacing)
 	remHeight -= m_children.size() < 1 ? 0 : m_children.size() * 2;
-
-	// pass 1 : assign vertical space to children with a fixed size
-	for (auto child : m_children) {
-		Size fixed = child->getFixedSize();
-		if (fixed.hasHeight()) {
-			remHeight -= fixed.height;
-		}
-	}
 	
 	// update bounding boxes of child elements
 	int bbx = m_bounds.x + padding.left;
 	int bby = m_bounds.y + padding.top;
 	int contentWidth = m_bounds.width - padding.left - padding.right;
-
+	int numFillChildren = 0;
+	
+	// pass 1 : assign space to non-filling children
+	for (auto child : m_children) {
+		Size desired = child->getDesiredSize(engine);
+		if (desired.height == Size::FILL) {
+			numFillChildren++;
+		} else {
+			remHeight -= desired.height;
+		}
+	}
+	
+	int fillingChildHeight;
+	if (numFillChildren != 0) {
+		fillingChildHeight = remHeight / numFillChildren;
+	} else {
+		fillingChildHeight = 0;	// XXX unused anyway
+	}
+	
 	// pass 2 : assign remaining vertical space to children 
 	for (auto child : m_children) {
-		Size fixed = child->getFixedSize();
 		Size desired = child->getDesiredSize(engine);
-		SizePolicy horizontalPolicy = child->getHorizontalSizePolicy();
-		SizePolicy verticalPolicy = child->getVerticalSizePolicy();
+
 		BoundingBox childBB;
 		childBB.x = bbx;
 		childBB.y = bby;
-
-		if (fixed.hasWidth()) {
-			childBB.width = fixed.width;
-		} else if (desired.hasWidth() && horizontalPolicy == SizePolicy::Preferred) {
-			childBB.width = desired.width;
-		} else {
+		
+		if (desired.width == Size::FILL) {
 			childBB.width = contentWidth;
-		}
-	
-		if (fixed.hasHeight()) {
-			childBB.height = fixed.height;
-		} else if (desired.hasHeight() && verticalPolicy == SizePolicy::Preferred) {
-			childBB.height = desired.height;
 		} else {
-			childBB.height = remHeight / m_children.size();	// XXX
+			childBB.width = std::min(contentWidth, desired.width);
+		}
+		
+		if (desired.height == Size::FILL) {
+			childBB.height = fillingChildHeight;
+		} else {
+			childBB.height = desired.height;
 		}
 
 		child->layout(engine, childBB);

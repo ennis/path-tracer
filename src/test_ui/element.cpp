@@ -110,6 +110,11 @@ void Element::onKeyUp(sf::Event::KeyEvent const &keyEvent) {
 	onKeyUpEvent(shared_from_this(), keyEvent);
 }
 
+void Element::onDrag(int mouseX, int mouseY)
+{
+	onDragEvent(shared_from_this(), mouseX, mouseY);
+}
+
 bool Element::hitTest(int x, int y) const
 {
 	if ((m_bounds.x < x) && 
