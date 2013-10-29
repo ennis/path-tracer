@@ -17,6 +17,7 @@ class Button;
 class Panel;
 class TextBox;
 class CheckBox;
+class RadioButton;
 
 enum ElementType
 {
@@ -35,7 +36,8 @@ public:
 	//virtual void drawSlider(sf::RenderTarget &renderTarget, BoundingBox const &bounds, int state, int sliderPosition) = 0;
 	virtual void drawTextBox(sf::RenderTarget &renderTarget, TextBox &textBox) = 0;
 	virtual void drawCheckBox(sf::RenderTarget &renderTarget, CheckBox &checkBox) = 0;
-
+	virtual void drawRadioButton(sf::RenderTarget &renderTarget, RadioButton &radioButton) = 0;
+	
 	// TODO getPanelMargins, getButtonMargins, etc.
 
 	virtual void getButtonMargins(Margins &margin, Margins &padding) = 0;
@@ -43,10 +45,12 @@ public:
 	virtual void getTextBoxMargins(Margins &margin, Margins &padding) = 0;
 
 	virtual Size getCheckboxSize() = 0;
+	virtual Size getRadioSize() = 0;
 	virtual int getSliderHeight() = 0;
 	virtual void getMinButtonSize(int &width, int &height) = 0;
 
 	virtual Size measureText(std::string const &str) = 0;
+	
 	
 
 protected:

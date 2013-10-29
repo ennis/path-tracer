@@ -4,6 +4,7 @@
 #include "textbox.hpp"
 #include "panel.hpp"
 #include "checkbox.hpp"
+#include "radiobutton.hpp"
 
 namespace ui
 {
@@ -25,10 +26,33 @@ const sf::Color DefaultEngine::checkBoxBackgroundHoverColor = sf::Color(171, 201
 const sf::Color DefaultEngine::checkBoxTickColor = sf::Color(112, 244, 198);
 const Margins DefaultEngine::checkBoxTickPadding = Margins(3, 3, 3, 3);
 const Size DefaultEngine::checkBoxSize = Size(12, 12);
+const Size DefaultEngine::radioButtonSize = Size(12, 12);
 
 DefaultEngine::~DefaultEngine()
 {
 }
+
+void DefaultEngine::drawRadioButton(sf::RenderTarget& renderTarget, RadioButton& radioButton)
+{
+	BoundingBox const &bb = radioButton.getBounds();
+	bool hover = radioButton.testState(Element::HOVER);
+	sf::CircleShape circle;
+	circle.setPosition(static_cast<float>(bb.x)+1, static_cast<float>(bb.y)+1);
+	circle.setRadius(5);
+	circle.setFillColor(hover ? checkBoxBackgroundHoverColor : checkBoxBackgroundColor);
+	circle.setOutlineColor(checkBoxBorderColor);
+	circle.setOutlineThickness(1);
+	renderTarget.draw(circle);
+	
+	if (radioButton.isChecked()) {
+		circle.setPosition(static_cast<float>(bb.x)+2, static_cast<float>(bb.y)+2);
+		circle.setRadius(4);
+		circle.setFillColor(checkBoxTickColor);
+		circle.setOutlineThickness(0);
+		renderTarget.draw(circle);
+	}
+}
+
 
 void DefaultEngine::drawButtonFrame(sf::RenderTarget &renderTarget, Button &button)
 {
@@ -41,7 +65,6 @@ void DefaultEngine::drawButtonFrame(sf::RenderTarget &renderTarget, Button &butt
 
 void DefaultEngine::drawPanelFrame(sf::RenderTarget &renderTarget, Panel &panel)
 {
-	// TODO draw a semitransparent rectangle
 	BoundingBox const &bb = panel.getBounds();
 	bool hover = panel.testState(Element::HOVER);
 	drawFilledRectangle(renderTarget, bb.x, bb.y, bb.width, bb.height, hover ? panelBackgroundHoverColor : panelBackgroundColor);
@@ -54,24 +77,18 @@ void DefaultEngine::drawPanelFrame(sf::RenderTarget &renderTarget, Panel &panel)
 
 void DefaultEngine::drawTextBox(sf::RenderTarget &renderTarget, TextBox &textBox)
 {
-	// TODO draw text with default font
 	BoundingBox const &bb = textBox.getBounds();
 	drawText(renderTarget, bb.x, bb.y, 12, textBox.getText(), buttonForegroundColor);
 }
 
-/*void DefaultEngine::drawCheckbox(sf::RenderTarget &renderTarget, BoundingBox const &bounds, int state, bool checked)
-{
-	// TODO draw borders and a check mark
-}
-
-void DefaultEngine::drawButtonLabel(sf::RenderTarget &renderTarget, BoundingBox const &bounds, int state, std::string const &text)
-{
-	// drawText
-}*/
-
 Size DefaultEngine::getCheckboxSize()
 {
 	return checkBoxSize;
+}
+
+Size DefaultEngine::getRadioSize()
+{
+	return radioButtonSize;
 }
 
 int DefaultEngine::getSliderHeight()

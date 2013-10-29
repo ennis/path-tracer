@@ -14,5 +14,10 @@ void Slider::onDrag(int mouseX, int mouseY)
 }
 
 
+Size Slider::getDesiredSize(Engine& engine)
+{
+	return ui::Element::getDesiredSize(engine);
+}
+
 	
 }

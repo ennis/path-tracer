@@ -24,12 +24,14 @@ public:
 	//virtual void drawCheckbox(sf::RenderTarget &renderTarget, BoundingBox const &bounds, int state, bool checked);
 	//virtual void drawButtonLabel(sf::RenderTarget &renderTarget, BoundingBox const &bounds, int state, std::string const &text);
 	virtual void drawCheckBox(sf::RenderTarget &renderTarget, ui::CheckBox& checkBox);
+	virtual void drawRadioButton(sf::RenderTarget& renderTarget, RadioButton& radioButton);
 	
 	virtual void getButtonMargins(Margins &margin, Margins &padding);
 	virtual void getPanelMargins(Margins &margin, Margins &padding);
 	virtual void getTextBoxMargins(Margins &margin, Margins &padding);
 
 	virtual Size getCheckboxSize();
+	virtual Size getRadioSize();
 	virtual int getSliderHeight();
 	virtual void getMinButtonSize(int &width, int &height);
 	
@@ -59,7 +61,8 @@ public:
 	static const sf::Color checkBoxTickColor;
 	static const Margins checkBoxTickPadding;
 	static const Size checkBoxSize;
-
+	static const Size radioButtonSize;
+	
 protected:
 
 	void drawFilledRectangle(sf::RenderTarget &renderTarget, int x, int y, int width, int height, sf::Color const &color);

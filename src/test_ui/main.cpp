@@ -12,6 +12,7 @@
 #include "button.hpp"
 #include "checkbox.hpp"
 #include "spacer.hpp"
+#include "radiobutton.hpp"
 
 #define glCheck(call) { call; glCheckError(#call); }
 
@@ -69,6 +70,14 @@ int main()
 
 	auto textbox = TextBox::create("Hello world!");
 	auto checkbox = CheckBox::create();
+	auto radio1 = RadioButton::create();
+	auto radio2 = RadioButton::create();
+	auto radio3 = RadioButton::create();
+	auto radioGroup = RadioGroup::create();
+	radio1->setRadioGroup(radioGroup);
+	radio2->setRadioGroup(radioGroup);
+	radio3->setRadioGroup(radioGroup);
+	
 	
 	/*button1->setPlacement(Element::CC);
 	button2->setPlacement(Element::TR);
@@ -92,6 +101,9 @@ int main()
 	panel->add(Spacer::create());
 	panel->add(checkbox);
 	panel->add(textbox);
+	panel->add(radio1);
+	panel->add(radio2);
+	panel->add(radio3);
 	//panel->setWidth(ui::Size::px(200));
 
 	button1->setSize(Size(Size::FILL, Size::ADJUST));
