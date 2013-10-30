@@ -45,7 +45,7 @@ public:
 			return *sEngine.get();
 		} else {
 			// XXX do something? create on first use?
-			throw new std::exception("UI: no engine set");
+			throw new std::runtime_error("UI: no engine set");
 		}
 	}
 
