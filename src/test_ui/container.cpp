@@ -52,6 +52,13 @@ namespace ui
 			}
 			break;
 
+		case sf::Event::MouseButtonReleased:
+			clearState(Element::ACTIVE);
+			for (auto child : m_children) {
+				child->handleEvent(event);
+			}
+			break;
+
 		default:
 			handled = false;
 			break;

@@ -48,9 +48,9 @@ public:
 		}
 	}
 	
-	virtual void render(sf::RenderTarget& renderTarget, Engine& engine);
-	virtual void doLayout(Engine& engine);
-	virtual Size getDesiredSize(Engine& engine);
+	virtual void render(sf::RenderTarget& renderTarget);
+	virtual void doLayout();
+	virtual Size getDesiredSize();
 	
 	bool isChecked() const {
 		return m_checked;
@@ -84,7 +84,7 @@ protected:
 	RadioGroup::Ptr m_radioGroup;
 	bool m_checked;
 };
-	
+
 }
 
 #endif

@@ -19,12 +19,12 @@ public:
 	~Button()
 	{}
 
-	virtual void render(sf::RenderTarget &renderTarget, Engine &engine);
+	virtual void render(sf::RenderTarget &renderTarget);
 		
 	Button(private_key, std::string const &label);
 
-	virtual Size getDesiredSize(Engine &engine);
-	virtual void doLayout(Engine &engine);
+	virtual Size getDesiredSize();
+	virtual void doLayout();
 
 	static Button::Ptr create(std::string const &label) {
 		return std::make_shared<Button>(private_key(), label);

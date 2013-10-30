@@ -115,6 +115,11 @@ void Element::onDrag(int mouseX, int mouseY)
 	onDragEvent(shared_from_this(), mouseX, mouseY);
 }
 
+void Element::onHover(int mouseX, int mouseY)
+{
+	onHoverEvent(shared_from_this(), mouseX, mouseY);
+}
+
 bool Element::hitTest(int x, int y) const
 {
 	if ((m_bounds.x < x) && 
@@ -144,17 +149,25 @@ bool Element::handleEvent(sf::Event const &event)
 					onHoverLeave();
 				}
 			}
+			if (hit) {
+				onHover(event.mouseMove.x, event.mouseMove.y);
+			}
 		}
 		handled = true;
 		break;
 
 	case sf::Event::MouseButtonPressed:
 		if (hitTest(event.mouseButton.x, event.mouseButton.y)) {
+			setState(Element::ACTIVE);
 			onClick(event.mouseButton.x, event.mouseButton.y);
 			handled = true;
 		} else {
 			handled = false;
 		}
+		break;
+
+	case sf::Event::MouseButtonReleased:
+		clearState(Element::ACTIVE);
 		break;
 
 	default:

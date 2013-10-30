@@ -13,6 +13,7 @@
 #include "checkbox.hpp"
 #include "spacer.hpp"
 #include "radiobutton.hpp"
+#include "slider.hpp"
 
 #define glCheck(call) { call; glCheckError(#call); }
 
@@ -50,7 +51,9 @@ int main()
 	defaultFont.loadFromFile("uzura.ttf");
 
 	auto engine = DefaultEngine::create(defaultFont);
-	auto ui = UI::create(engine);
+	UI::setEngine(engine);
+
+	auto ui = UI::create();
 	ui->setSize(WIDTH, HEIGHT);
 
 	auto panel = Panel::create();
@@ -74,6 +77,7 @@ int main()
 	auto radio2 = RadioButton::create();
 	auto radio3 = RadioButton::create();
 	auto radioGroup = RadioGroup::create();
+	auto slider = Slider::create(0, 100, 30);
 	radio1->setRadioGroup(radioGroup);
 	radio2->setRadioGroup(radioGroup);
 	radio3->setRadioGroup(radioGroup);
@@ -101,9 +105,13 @@ int main()
 	panel->add(Spacer::create());
 	panel->add(checkbox);
 	panel->add(textbox);
+	panel->add(slider);
+	auto textbox2 = TextBox::create("Slider value:");
+	panel->add(textbox2);
 	panel->add(radio1);
 	panel->add(radio2);
 	panel->add(radio3);
+	
 	//panel->setWidth(ui::Size::px(200));
 
 	button1->setSize(Size(Size::FILL, Size::ADJUST));
@@ -119,6 +127,8 @@ int main()
 		std::cout << "CheckBox clicked, checked=" << checkbox->isChecked() << "\n";
 		textbox->setText("Clicks: " + std::to_string(++numClicks));
 	});
+
+	slider->onSliderValueChangedEvent.add([&textbox2](Slider::Ptr slider) { textbox2->setText(std::to_string(slider->getValue())); }); 
 
     // run the program as long as the window is open
     while (window.isOpen())

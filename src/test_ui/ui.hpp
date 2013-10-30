@@ -20,20 +20,33 @@ public:
 
 	typedef std::shared_ptr<UI> Ptr;
 
-	void setEngine(Engine::Ptr engine);
 	void render(sf::RenderTarget &renderTarget);
 	void add(ElementPtr element);
 	void setSize(int width, int height);
+
 	void onEvent(sf::Event const &event);
 	void doLayout();
 
-	static UI::Ptr create(Engine::Ptr engine)
+	static UI::Ptr create()
 	{
-		return std::make_shared<UI>(private_key(), engine);
+		return std::make_shared<UI>(private_key());
 	}
 
-	UI(private_key, Engine::Ptr engine) : m_engine(engine)
+	UI(private_key) 
 	{
+	}
+
+	static void setEngine(Engine::Ptr const &engine) {
+		sEngine = engine;
+	}
+
+	static Engine &getEngine() {
+		if (sEngine) {
+			return *sEngine.get();
+		} else {
+			// XXX do something? create on first use?
+			throw new std::exception("UI: no engine set");
+		}
 	}
 
 private:
@@ -42,7 +55,8 @@ private:
 	int m_height;
 	//RenderList m_renderList;
 	ElementPtr m_rootPanel;
-	Engine::Ptr m_engine;
+	
+	static Engine::Ptr sEngine;
 };
 
 }

@@ -19,9 +19,9 @@ public:
 	virtual ~CheckBox()
 	{}
 	
-	virtual Size getDesiredSize(Engine& engine);
-	virtual void doLayout(Engine& engine);
-	virtual void render(sf::RenderTarget& renderTarget, Engine& engine);
+	virtual Size getDesiredSize();
+	virtual void doLayout();
+	virtual void render(sf::RenderTarget& renderTarget);
 	
 	bool isChecked() const {
 		return m_checked;

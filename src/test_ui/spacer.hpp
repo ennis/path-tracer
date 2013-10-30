@@ -20,7 +20,7 @@ public:
 	virtual ~Spacer()
 	{}
 	
-	virtual void render(sf::RenderTarget& renderTarget, Engine& engine)
+	virtual void render(sf::RenderTarget& renderTarget)
 	{
 		// nothing to do
 	}

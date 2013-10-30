@@ -63,7 +63,7 @@ public:
 	Element(std::string const &className, std::string const &elementId) :  m_state(VISIBLE), m_class(className), m_id(elementId)
 	{}
 
-	virtual void render(sf::RenderTarget &renderTarget, Engine &engine) = 0;		// XXX this is really an instance of the observer pattern
+	virtual void render(sf::RenderTarget &renderTarget) = 0;		// XXX this is really an instance of the observer pattern
 
 	std::string const &getClass() {
 		return m_class;
@@ -74,15 +74,15 @@ public:
 
 	//==================================
 	// layout
-	void layout(Engine &engine, BoundingBox const &bounds) {
+	void layout(BoundingBox const &bounds) {
 		m_bounds = bounds;
-		doLayout(engine);
+		doLayout();
 	}
 
-	virtual void doLayout(Engine &engine)
+	virtual void doLayout()
 	{}
 	
-	virtual Size getDesiredSize(Engine &engine) {
+	virtual Size getDesiredSize() {
 		return m_size;
 	}
 	
@@ -164,9 +164,10 @@ public:
 
 	// Event typedefs
 	typedef Delegate3<Element::Ptr, int, int> OnClickEvent;
-	typedef Delegate1<Element::Ptr> OnHoverEvent;
+	typedef Delegate1<Element::Ptr> OnHoverEnterExitEvent;
 	typedef Delegate2<Element::Ptr, sf::Event::KeyEvent const &> OnKeyEvent;
 	typedef Delegate3<Element::Ptr, int, int> OnDragEvent;
+	typedef Delegate3<Element::Ptr, int, int> OnHoverEvent;
 	
 	virtual void onHoverEnter();
 	virtual void onHoverLeave();
@@ -174,19 +175,33 @@ public:
 	virtual void onKeyDown(sf::Event::KeyEvent const &keyEvent);
 	virtual void onKeyUp(sf::Event::KeyEvent const &keyEvent);
 	virtual void onDrag(int mouseX, int mouseY);
+	virtual void onHover(int mouseX, int mouseY);
+
+	Engine &getEngine() {
+		// TODO get engine from parent if m_customEngine == null
+		if (m_customEngine) {
+			return *m_customEngine.get();
+		} else {
+			return UI::getEngine();
+		}
+	}
 
 public:
 	// events
 	OnClickEvent onClickEvent;
-	OnHoverEvent onHoverEnterEvent;
-	OnHoverEvent onHoverLeaveEvent;
+	OnHoverEnterExitEvent onHoverEnterEvent;
+	OnHoverEnterExitEvent onHoverLeaveEvent;
 	OnKeyEvent onKeyDownEvent;
 	OnKeyEvent onKeyUpEvent;
 	OnDragEvent onDragEvent;
+	OnHoverEvent onHoverEvent;
 
 protected:
 
 	// available space -> requisition (-> requisition) -> placement -> allocation (-> recurse)
+
+	// custom engine
+	Engine::Ptr m_customEngine;
 	
 
 	// class name for properties

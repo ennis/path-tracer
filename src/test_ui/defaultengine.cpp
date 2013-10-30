@@ -5,6 +5,7 @@
 #include "panel.hpp"
 #include "checkbox.hpp"
 #include "radiobutton.hpp"
+#include "slider.hpp"
 
 namespace ui
 {
@@ -27,6 +28,16 @@ const sf::Color DefaultEngine::checkBoxTickColor = sf::Color(112, 244, 198);
 const Margins DefaultEngine::checkBoxTickPadding = Margins(3, 3, 3, 3);
 const Size DefaultEngine::checkBoxSize = Size(12, 12);
 const Size DefaultEngine::radioButtonSize = Size(12, 12);
+
+
+const sf::Color DefaultEngine::sliderKnobActiveColor = sf::Color(112, 244, 198);
+const sf::Color DefaultEngine::sliderKnobColor = sf::Color(112, 167, 244);
+const sf::Color DefaultEngine::sliderKnobHoverColor= sf::Color(171, 201, 244);
+const sf::Color DefaultEngine::sliderBarColor = sf::Color(112, 112, 112);
+
+const int DefaultEngine::sliderVerticalPadding = 1;
+const int DefaultEngine::sliderHorizontalPadding = 7;
+const Size DefaultEngine::sliderKnobSize = Size(8, 8);
 
 DefaultEngine::~DefaultEngine()
 {
@@ -89,12 +100,6 @@ Size DefaultEngine::getCheckboxSize()
 Size DefaultEngine::getRadioSize()
 {
 	return radioButtonSize;
-}
-
-int DefaultEngine::getSliderHeight()
-{
-	// TODO Dummy
-	return 8;
 }
 
 void DefaultEngine::getMinButtonSize(int &width, int &height)
@@ -174,6 +179,72 @@ void DefaultEngine::drawCheckBox(sf::RenderTarget &renderTarget, CheckBox& check
 		drawFilledRectangle(renderTarget, check.x, check.y, check.width, check.height, checkBoxTickColor);
 	}
 	
+}
+
+// TODO clean this
+int DefaultEngine::getSliderPosition(Slider &slider, int mouseX, int mouseY)
+{
+	BoundingBox bb = slider.getBounds();
+	
+	int barBegin = bb.x + sliderHorizontalPadding;
+	int barEnd = bb.x + bb.width - sliderHorizontalPadding;
+	int barWidth = barEnd - barBegin;
+	int position = std::min(std::max(0, mouseX - barBegin), barWidth);
+
+	int value = slider.getValue();
+	int minValue = slider.getMinValue();
+	int amplitude = slider.getMaxValue() - minValue;
+
+	return std::min(position * amplitude / barWidth + minValue, slider.getMaxValue());
+}
+
+int DefaultEngine::getSliderHeight() 
+{
+	return 2*sliderVerticalPadding + sliderKnobSize.height;
+}
+
+void DefaultEngine::drawSlider(sf::RenderTarget &renderTarget, Slider &slider) 
+{
+	BoundingBox bb = slider.getBounds();
+	//bb.contract(Margins(sliderHorizontalPadding, sliderHorizontalPadding, sliderVerticalPadding, sliderVerticalPadding));
+	bool hover = slider.testState(Element::HOVER);
+
+	int barBegin = bb.x + sliderHorizontalPadding;
+	int barEnd = bb.x + bb.width - sliderHorizontalPadding;
+	int barWidth = barEnd - barBegin;
+	int value = slider.getValue();
+	int minValue = slider.getMinValue();
+	int amplitude = slider.getMaxValue() - minValue;
+
+	if (amplitude == 0) {
+		return;
+	}
+	
+	int knobCenterPos = ((value - minValue) * barWidth) / amplitude + barBegin;
+
+	// draw slider bar
+	int sliderBarY = bb.y + sliderVerticalPadding + sliderKnobSize.height / 2 - 1;
+	// TODO fix this
+	drawFilledRectangle(renderTarget, bb.x + sliderHorizontalPadding, sliderBarY, barWidth, 2, sliderBarColor);
+	
+	// draw knob
+	sf::Color knobColor;
+	if (slider.testState(Element::ACTIVE)) {
+		knobColor = sliderKnobActiveColor;
+	} else if (slider.testState(Element::HOVER)) {
+		knobColor = sliderKnobHoverColor;
+	} else {
+		knobColor = sliderKnobColor;
+	}
+	// XXX oh god this is ugly
+	drawFilledRectangle(renderTarget, 
+		bb.x + knobCenterPos - sliderKnobSize.width / 2, 
+		bb.y + sliderVerticalPadding, 
+		sliderKnobSize.width, 
+		sliderKnobSize.height, 
+		knobColor);
+
+	// TODO draw steps
 }
 
 }

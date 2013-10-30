@@ -22,12 +22,12 @@ Panel::~Panel()
 {
 }
 
-void Panel::render(sf::RenderTarget &renderTarget, Engine &engine)
+void Panel::render(sf::RenderTarget &renderTarget)
 {
 	//std::clog << "Panel::render\n";
-	engine.drawPanelFrame(renderTarget, *this);
+	getEngine().drawPanelFrame(renderTarget, *this);
 	for (auto child : m_children) {
-		child->render(renderTarget, engine);
+		child->render(renderTarget);
 	}
 }
 
@@ -42,13 +42,14 @@ void Panel::setOrientation(Orientation orientation)
 	m_orientation = orientation;
 }
 
-Size Panel::getDesiredSize(Engine &engine)
+Size Panel::getDesiredSize()
 {
 	return measureFromContents(Size(-1, -1));
 }
 
-void Panel::doLayout(Engine &engine)
+void Panel::doLayout()
 {
+	Engine &engine = getEngine();
 	Margins margin, padding;
 	engine.getPanelMargins(margin, padding);
 
@@ -68,7 +69,7 @@ void Panel::doLayout(Engine &engine)
 	
 	// pass 1 : assign space to non-filling children
 	for (auto child : m_children) {
-		Size desired = child->getDesiredSize(engine);
+		Size desired = child->getDesiredSize();
 		if (desired.height == Size::FILL) {
 			numFillChildren++;
 		} else {
@@ -85,7 +86,7 @@ void Panel::doLayout(Engine &engine)
 	
 	// pass 2 : assign remaining vertical space to children 
 	for (auto child : m_children) {
-		Size desired = child->getDesiredSize(engine);
+		Size desired = child->getDesiredSize();
 
 		BoundingBox childBB;
 		childBB.x = bbx;
@@ -103,7 +104,7 @@ void Panel::doLayout(Engine &engine)
 			childBB.height = desired.height;
 		}
 
-		child->layout(engine, childBB);
+		child->layout(childBB);
 		bby += childBB.height + 2;
 	}
 }

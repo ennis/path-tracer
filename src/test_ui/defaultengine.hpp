@@ -26,14 +26,18 @@ public:
 	virtual void drawCheckBox(sf::RenderTarget &renderTarget, ui::CheckBox& checkBox);
 	virtual void drawRadioButton(sf::RenderTarget& renderTarget, RadioButton& radioButton);
 	
+	// TODO drop margins
 	virtual void getButtonMargins(Margins &margin, Margins &padding);
 	virtual void getPanelMargins(Margins &margin, Margins &padding);
 	virtual void getTextBoxMargins(Margins &margin, Margins &padding);
 
 	virtual Size getCheckboxSize();
 	virtual Size getRadioSize();
-	virtual int getSliderHeight();
 	virtual void getMinButtonSize(int &width, int &height);
+
+	virtual int getSliderPosition(Slider &slider, int mouseX, int mouseY);
+	virtual int getSliderHeight();
+	virtual void drawSlider(sf::RenderTarget &renderTarget, Slider &slider);
 	
 	virtual Size measureText(std::string const &str);
 
@@ -62,7 +66,17 @@ public:
 	static const Margins checkBoxTickPadding;
 	static const Size checkBoxSize;
 	static const Size radioButtonSize;
-	
+
+	// slider 
+	static const Size sliderKnobSize;
+	static const int sliderHeight;
+	static const sf::Color sliderBarColor;
+	static const sf::Color sliderKnobColor;
+	static const sf::Color sliderKnobHoverColor;
+	static const sf::Color sliderKnobActiveColor;
+	static const int sliderHorizontalPadding;
+	static const int sliderVerticalPadding;
+
 protected:
 
 	void drawFilledRectangle(sf::RenderTarget &renderTarget, int x, int y, int width, int height, sf::Color const &color);

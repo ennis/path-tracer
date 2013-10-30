@@ -6,14 +6,11 @@
 namespace ui
 {
 
-void UI::setEngine(Engine::Ptr engine)
-{
-	m_engine = engine;
-}
+Engine::Ptr UI::sEngine;
 
 void UI::render(sf::RenderTarget &renderTarget)
 {
-	m_rootPanel->render(renderTarget, *m_engine);
+	m_rootPanel->render(renderTarget);
 }
 
 void UI::add(Element::Ptr element)
@@ -26,7 +23,7 @@ void UI::add(Element::Ptr element)
 void UI::doLayout()
 {
 	if (m_rootPanel != nullptr) {
-		Size desired = m_rootPanel->getDesiredSize(*m_engine);
+		Size desired = m_rootPanel->getDesiredSize();
 		BoundingBox childBB;
 		childBB.x = 0;
 		childBB.y = 0;
@@ -44,7 +41,7 @@ void UI::doLayout()
 			childBB.height = std::min(m_height, desired.height);
 		}
 
-		m_rootPanel->layout(*m_engine, childBB);
+		m_rootPanel->layout(childBB);
 	}
 }
 

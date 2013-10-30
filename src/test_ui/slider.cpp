@@ -3,20 +3,26 @@
 namespace ui
 {
 	
-void Slider::doLayout(Engine& engine)
+void Slider::doLayout()
 {
-	
+	// XXX nothing to do
 }
 
-void Slider::onDrag(int mouseX, int mouseY)
+void Slider::onClick(int mouseX, int mouseY)
 {
-	ui::Element::onDrag(mouseX, mouseY);
+	int newValue = getEngine().getSliderPosition(*this, mouseX, mouseY);
+	setValue(newValue);
+	ui::Element::onClick(mouseX, mouseY);
 }
 
-
-Size Slider::getDesiredSize(Engine& engine)
+void Slider::render(sf::RenderTarget &renderTarget)
 {
-	return ui::Element::getDesiredSize(engine);
+	getEngine().drawSlider(renderTarget, *this);
+}
+
+Size Slider::getDesiredSize()
+{
+	return Size(Size::FILL, getEngine().getSliderHeight());
 }
 
 	

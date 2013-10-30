@@ -23,6 +23,17 @@ struct BoundingBox
 				std::max(0, height - margins.top - margins.bottom));
 	}
 
+	bool hitTest(int tx, int ty) {
+		if ((x < tx) && 
+			(tx < (x + width)) && 
+			(y < ty) && 
+			(ty < (y + height))) { 
+			return true;
+		} else {
+			return false;
+		} 
+	}
+
 	int x;
 	int y;
 	int width;

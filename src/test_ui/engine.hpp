@@ -18,6 +18,7 @@ class Panel;
 class TextBox;
 class CheckBox;
 class RadioButton;
+class Slider;
 
 enum ElementType
 {
@@ -48,6 +49,9 @@ public:
 	virtual Size getRadioSize() = 0;
 	virtual int getSliderHeight() = 0;
 	virtual void getMinButtonSize(int &width, int &height) = 0;
+
+	virtual int getSliderPosition(Slider &slider, int mouseX, int mouseY) = 0;
+	virtual void drawSlider(sf::RenderTarget &renderTarget, Slider &slider) = 0;
 
 	virtual Size measureText(std::string const &str) = 0;
 	

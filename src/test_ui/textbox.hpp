@@ -15,9 +15,9 @@ public:
 	typedef std::shared_ptr<TextBox> Ptr;
 
 	virtual ~TextBox();
-	virtual void render(sf::RenderTarget &renderTarget, Engine &engine);
+	virtual void render(sf::RenderTarget &renderTarget);
 	
-	virtual Size getDesiredSize(Engine &engine);
+	virtual Size getDesiredSize();
 	
 	TextBox(private_key, std::string const &str) : 
 		m_string(str)

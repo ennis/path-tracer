@@ -21,21 +21,19 @@ void RadioGroup::removeRadio(RadioButton &radioButton)
 	});
 }
 
-	
-
-void RadioButton::render(sf::RenderTarget& renderTarget, Engine& engine)
+void RadioButton::render(sf::RenderTarget& renderTarget)
 {
-	engine.drawRadioButton(renderTarget, *this);
+	getEngine().drawRadioButton(renderTarget, *this);
 }
 
-void RadioButton::doLayout(Engine& engine)
+void RadioButton::doLayout()
 {
 	// XXX nothing to do
 }
 
-Size RadioButton::getDesiredSize(Engine& engine)
+Size RadioButton::getDesiredSize()
 {
-	return engine.getRadioSize();
+	return getEngine().getRadioSize();
 }
 
 	

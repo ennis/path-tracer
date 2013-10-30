@@ -26,14 +26,14 @@ public:
 
 	virtual ~Panel();
 
-	virtual void render(sf::RenderTarget &renderTarget, Engine &engine);
+	virtual void render(sf::RenderTarget &renderTarget);
 	virtual void setOrientation(Orientation orientation);
 	
 	Panel(private_key);
 	Panel(private_key, Orientation orientation, Spacing spacing);
 
-	virtual Size getDesiredSize(Engine &engine);
-	virtual void doLayout(Engine &engine);
+	virtual Size getDesiredSize();
+	virtual void doLayout();
 
 	static Ptr create() {
 		return std::make_shared<Panel>(private_key());

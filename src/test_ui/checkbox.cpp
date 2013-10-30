@@ -3,19 +3,19 @@
 namespace ui 
 {
 
-void CheckBox::doLayout(ui::Engine& engine)
+void CheckBox::doLayout()
 {
 	// XXX nothing to do
 }
 
-Size CheckBox::getDesiredSize(Engine& engine)
+Size CheckBox::getDesiredSize()
 {
-	return engine.getCheckboxSize();
+	return getEngine().getCheckboxSize();
 }
 
-void CheckBox::render(sf::RenderTarget& renderTarget, Engine& engine)
+void CheckBox::render(sf::RenderTarget& renderTarget)
 {
-	engine.drawCheckBox(renderTarget, *this);
+	getEngine().drawCheckBox(renderTarget, *this);
 }
 
 void CheckBox::onClick(int mouseX, int mouseY)

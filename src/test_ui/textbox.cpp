@@ -7,14 +7,14 @@ TextBox::~TextBox()
 {
 }
 
-Size TextBox::getDesiredSize(Engine &engine)
+Size TextBox::getDesiredSize()
 {
-	return engine.measureText(m_string);
+	return getEngine().measureText(m_string);
 }
 
-void TextBox::render(sf::RenderTarget &renderTarget, Engine &engine)
+void TextBox::render(sf::RenderTarget &renderTarget)
 {
-	engine.drawTextBox(renderTarget, *this);
+	getEngine().drawTextBox(renderTarget, *this);
 }
 
 }
