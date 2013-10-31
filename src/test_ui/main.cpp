@@ -57,8 +57,8 @@ int main()
 	ui->setSize(WIDTH, HEIGHT);
 
 	auto panel = Panel::create();
-	auto subpanel1 = Panel::create(Panel::HORIZONTAL, Panel::NO_SPACING);
-	auto subpanel2 = Panel::create(Panel::HORIZONTAL, Panel::NO_SPACING);
+	auto subpanel1 = Panel::create(Panel::HORIZONTAL);
+	auto subpanel2 = Panel::create(Panel::HORIZONTAL);
 	auto button1 = Button::create("Button 1");
 	auto button2 = Button::create("Button 2");
 	auto button3 = Button::create("Button 3");
@@ -77,12 +77,11 @@ int main()
 	auto radio2 = RadioButton::create();
 	auto radio3 = RadioButton::create();
 	auto radioGroup = RadioGroup::create();
-	auto slider = Slider::create(0, 100, 30);
+	auto slider = Slider::create(5, 100, 0);
 	radio1->setRadioGroup(radioGroup);
 	radio2->setRadioGroup(radioGroup);
 	radio3->setRadioGroup(radioGroup);
-	
-	
+
 	/*button1->setPlacement(Element::CC);
 	button2->setPlacement(Element::TR);
 	button3->setPlacement(Element::BL);*/
@@ -105,15 +104,29 @@ int main()
 	panel->add(Spacer::create());
 	panel->add(checkbox);
 	panel->add(textbox);
+
+	auto hbox1 = Panel::create(Panel::HORIZONTAL);
+	hbox1->setSize(Size(Size::FILL, Size::ADJUST));
+	auto hbox2 = Panel::create(Panel::HORIZONTAL);
+	hbox2->setSize(Size(Size::FILL, Size::ADJUST));
+	auto hbox3 = Panel::create(Panel::HORIZONTAL);
+	hbox3->setSize(Size(Size::FILL, Size::ADJUST));
+	hbox1->add(radio1);
+	hbox1->add(TextBox::create("first option"));
+	hbox2->add(radio2);
+	hbox2->add(TextBox::create("second option"));
+	hbox3->add(radio3);
+	hbox3->add(TextBox::create("third option"));
+
+	panel->add(hbox1);
+	panel->add(hbox2);
+	panel->add(hbox3);
+
 	panel->add(slider);
 	auto textbox2 = TextBox::create("Slider value:");
 	panel->add(textbox2);
-	panel->add(radio1);
-	panel->add(radio2);
-	panel->add(radio3);
-	
-	//panel->setWidth(ui::Size::px(200));
 
+	//panel->setWidth(ui::Size::px(200));
 	button1->setSize(Size(Size::FILL, Size::ADJUST));
 	panel->setSize(Size(200, Size::FILL));
 

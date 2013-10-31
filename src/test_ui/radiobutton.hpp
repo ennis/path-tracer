@@ -85,6 +85,30 @@ protected:
 	bool m_checked;
 };
 
+/*class RadioOptions : public Container
+{
+	struct private_key {};
+public:
+	typedef std::shared_ptr<RadioOptions> Ptr;
+
+	RadioOptions(private_key) : 
+	{}
+	
+	virtual ~RadioButton() {
+	}
+	
+	virtual void render(sf::RenderTarget& renderTarget) {
+		
+	}
+	
+	virtual void doLayout();
+	virtual Size getDesiredSize();
+	
+protected:
+	RadioGroup::Ptr m_radioGroup;
+	std::vector<TextBox::Ptr> m_labels;
+};*/
+
 }
 
 #endif

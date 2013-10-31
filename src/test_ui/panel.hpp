@@ -14,11 +14,6 @@ class Panel : public Container
 public:
 	typedef std::shared_ptr<Panel> Ptr;
 
-	enum Spacing {
-		SPACING_EVEN,
-		NO_SPACING
-	};
-
 	enum Orientation {
 		VERTICAL,
 		HORIZONTAL
@@ -30,7 +25,7 @@ public:
 	virtual void setOrientation(Orientation orientation);
 	
 	Panel(private_key);
-	Panel(private_key, Orientation orientation, Spacing spacing);
+	Panel(private_key, Orientation orientation);
 
 	virtual Size getDesiredSize();
 	virtual void doLayout();
@@ -39,13 +34,12 @@ public:
 		return std::make_shared<Panel>(private_key());
 	}
 
-	static Ptr create(Orientation orientation, Spacing spacing) {
-		return std::make_shared<Panel>(private_key(), orientation, spacing);
+	static Ptr create(Orientation orientation) {
+		return std::make_shared<Panel>(private_key(), orientation);
 	}
 
 private:
 	Orientation m_orientation;
-	Spacing m_spacing;
 };
 
 
