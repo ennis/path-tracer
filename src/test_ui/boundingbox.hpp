@@ -2,6 +2,7 @@
 #define BOUNDINGBOX_HPP
 
 #include <ostream>
+#include <algorithm>
 #include "margins.hpp"
 
 namespace ui

@@ -60,7 +60,7 @@ void work()
 
 	// Environment map
 	EnvironmentMap glacier;
-	glacier.loadFromFile("uffizi-large.hdr", 1.f);
+	glacier.loadFromFile("uffizi-large.hdr", 0.3f);
 
 	// Textures
 	CheckerboardTexture checkerboard(
@@ -99,7 +99,7 @@ void work()
 		Point(0.f, 0.f, 0.f),
 		1.f,
 		NULL,
-		&lambertianBlue,
+		&mirrorWhite,
 		Vec(0.f, 0.f, 0.f));
 	
 	Sphere S2(
@@ -118,7 +118,7 @@ void work()
 
 
 	Plane P(
-		Point(0.f, -1.f, 0.f),
+		Point(0.f, -2.f, 0.f),
 		Vec(0.f,1.f,0.f),
 		NULL,
 		&lambertianGrid,
@@ -126,7 +126,7 @@ void work()
 
 	Plane P2(
 		Point(0.f, 7.f, 0.f),
-		Vec(0.f,-1.f,0.f),
+		Vec(0.f,-2.f,0.f),
 		NULL,
 		&lambertianBlue,
 		Vec(0.f, 0.f, 0.f));
@@ -142,7 +142,7 @@ void work()
 	// Camera
 	// TODO debug screenDist
 	Camera camera(
-		Point(1.0f, 1.5f, 3.5f), 
+		Point(1.0f, 0.5f, 3.5f), 
 		Point(0.0f, 0.0f, 0.f),
 		ASPECT_RATIO * 4.f, 
 		1.f * 4.f,
@@ -153,15 +153,15 @@ void work()
 	Scene scene;
 	scene.setCamera(&camera);
 	scene.setAmbient(Vec(0.0f, 0.0f, 0.0f));
-	//scene.setEnvironmentMap(&glacier);
-	scene.add(&S);
-	scene.add(&S2);
-	scene.add(&SL);
-	scene.addEmitter(&SL);
+	scene.setEnvironmentMap(&glacier);
+	//scene.add(&S);
+	//scene.add(&S2);
+	//scene.add(&SL);
+	//scene.addEmitter(&SL);
 	//scene.addEmitter(&pointLight);
 	scene.add(&P);
 	//scene.add(&P2);
-	//scene.add(&mesh);
+	scene.add(&mesh);
 
 	// Render
 	renderer.render(scene, *film, renderParameters);

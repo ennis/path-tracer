@@ -1,80 +1,53 @@
-#include <SFML/Graphics.hpp>
-#include <vector>
+#ifndef RENDERER_HPP
+#define RENDERER_HPP
 
-class Primitive
-{
-public:
-	virtual void render(sf::RenderTarget &target);
-private:
-};
+#include <memory>
+#include "size.hpp"
+#include "boundingbox.hpp"
+#include <cstdint>
 
-class RectanglePrimitive : public Primitive
+namespace ui
 {
-public:
-	RectanglePrimitive(int x, int y, int width, int height, sf::Color const &color) :
-		m_x(x), m_y(y), m_width(width), m_height(height)
+
+typedef int TextureID;
+typedef int ShaderID;
+
+struct Color
+{
+	Color() : r(0.f), g(0.f), b(0.f), a(0.f)
 	{}
 
-	virtual void render(sf::RenderTarget &target) {
-		sf::RectangleShape rectangleShape;
-		rectangleShape.setSize(sf::Vector2f(static_cast<float>(m_width), static_cast<float>(m_height)));
-		rectangleShape.setPosition(sf::Vector2f(static_cast<float>(m_x), static_cast<float>(m_y)));
-		rectangleShape.setOutlineThickness(0);
-		rectangleShape.setFillColor(m_color);
-		target.draw(rectangleShape);
-	}
-
-private:
-	int m_x, m_y, m_width, m_height;
-	sf::Color m_color;
-};
-
-class TextPrimitive : public Primitive
-{
-public:
-	TextPrimitive(char const *text, sf::Font const &font, int fontHeight) 
-	{
-		m_text.setString(text);
-		m_text.setFont(font);
-		m_text.setCharacterSize(fontHeight);
-	}
-
-	virtual void render(sf::RenderTarget &target) {
-		target.draw(m_text);
-	}
-
-private:
-	sf::Text m_text;
-};
-
-
-class RenderList
-{
-public:
-	RenderList()
+	Color(float r_, float g_, float b_, float a_) : r(r_), g(g_), b(b_), a(a_)
 	{}
 
-	void replay(sf::RenderTarget &target) {
-		for (Primitive *p : m_primitives) {
-			p->render(target);
-		}
+	uint32_t toUInt32ARGB() const {
+		//uint8_t ab, rb, gb, bb;
+		return 0;	// TODO
 	}
 
-	void clear() {
-		for (Primitive *p : m_primitives) {
-			delete p;
-		}
-		m_primitives.clear();
-	}
-
-	void drawRectangle(int x, int y, int width, int height, sf::Color const &color) {
-		m_primitives.push_back(new RectanglePrimitive(x, y, width, height, color));
-	}
-
-	void drawText(char const *text, sf::Font const &font, int fontHeight) {
-		m_primitives.push_back(new TextPrimitive(text, font, fontHeight));
-	}
-
-private:
-	std::vector<Primitive*> m_primitives;
+	float r, g, b, a;
 };
+
+class Renderer
+{
+	typedef std::shared_ptr<Renderer> Ptr;
+public:
+	virtual ShaderID loadShaderFromSource(char const *source) = 0;
+	virtual ShaderID loadShaderFromFile(char const *file) = 0;
+	virtual TextureID loadTextureFromFile(char const *file, int &width, int &height) = 0;
+	
+	virtual void beginDraw() = 0;
+	virtual void endDraw() = 0;
+
+	virtual void drawRect(BoundingBox const &bb, Color const &color) = 0;
+	virtual void drawTexturedRect(BoundingBox const &bb, TextureID texID) = 0;
+	virtual void useShader(ShaderID shaderID) = 0;
+	
+	// XXX shader programs?
+
+protected:
+};
+
+}
+
+#endif

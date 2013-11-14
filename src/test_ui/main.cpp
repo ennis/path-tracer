@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
@@ -57,20 +57,9 @@ int main()
 	ui->setSize(WIDTH, HEIGHT);
 
 	auto panel = Panel::create();
-	auto subpanel1 = Panel::create(Panel::HORIZONTAL);
-	auto subpanel2 = Panel::create(Panel::HORIZONTAL);
 	auto button1 = Button::create("Button 1");
 	auto button2 = Button::create("Button 2");
 	auto button3 = Button::create("Button 3");
-	
-	auto button41 = Button::create("Button 4|1");
-	auto button42 = Button::create("Button 4|2");
-	auto button43 = Button::create("Button 4|3");
-	
-	auto button51 = Button::create("Button 5|1");
-	auto button52 = Button::create("Button 5|2");
-	auto button53 = Button::create("Button 5|3");
-
 	auto textbox = TextBox::create("Hello world!");
 	auto checkbox = CheckBox::create();
 	auto radio1 = RadioButton::create();
@@ -82,22 +71,6 @@ int main()
 	radio2->setRadioGroup(radioGroup);
 	radio3->setRadioGroup(radioGroup);
 
-	/*button1->setPlacement(Element::CC);
-	button2->setPlacement(Element::TR);
-	button3->setPlacement(Element::BL);*/
-
-	//subpanel1->setHeight(30);
-	subpanel1->add(button41);
-	subpanel1->add(button42);
-	//subpanel1->add(button43);
-	
-	//subpanel2->setHeight(30);
-	subpanel2->add(button51);
-	subpanel2->add(button52);
-	//subpanel2->add(button43);
-
-	//panel->add(subpanel1);
-	//panel->add(subpanel2);
 	panel->add(button1);
 	panel->add(button2);
 	panel->add(button3);
@@ -126,13 +99,12 @@ int main()
 	auto textbox2 = TextBox::create("Slider value:");
 	panel->add(textbox2);
 
-	//panel->setWidth(ui::Size::px(200));
 	button1->setSize(Size(Size::FILL, Size::ADJUST));
 	panel->setSize(Size(200, Size::FILL));
 
 	ui->add(panel);
+	
 	int numClicks = 0;
-
 	button1->onClickEvent.add([&](Element::Ptr, int, int) { std::cout << "Button clicked!\n"; });
 	panel->onHoverEnterEvent.add([](Element::Ptr) { std::cout << "Hover enter\n"; });
 	panel->onHoverLeaveEvent.add([](Element::Ptr) { std::cout << "Hover exit\n"; });

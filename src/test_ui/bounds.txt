@@ -113,4 +113,14 @@ arrange: (size, contentsSize, position)
 	
 allocation = bounds
 
-	
+TODO:
+
+clean Engine interface
+child anchors
+Progress bars
+Combo boxes
+List views
+Scrollable windows
+Clipping regions for rendering
+Pure OpenGL rendering -> Renderer class
+Data models / adapters
