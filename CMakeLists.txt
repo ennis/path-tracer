@@ -5,15 +5,19 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(SFML_REQUIRED system window graphics)
 
 if (WIN32)
-set(SFML_ROOT "C:\\Users\\Alexandre\\Developpement\\sfml-bin")
+set(SFML_ROOT "C:\\Users\\Alexandre\\Developpement\\libs\\SFML")
 list(APPEND SFML_REQUIRED main)
 else()
 add_definitions(-std=c++11 -msse4.2)
 endif()
 
+#========== GLM ==========
+include("cmake/glmConfig.cmake")
+
 find_package(SFML 2 COMPONENTS ${SFML_REQUIRED} REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+
 
 file(
 	GLOB
@@ -24,19 +28,18 @@ file(
 	src/pathtracer/rgbe/*.hpp
 )
 
-file(
-	GLOB
-	TESTUI_SOURCE_FILES
-	src/test_ui/*.cpp
-	src/test_ui/*.hpp
-)
+include_directories(
+	${OpenGL_INCLUDE_DIRS}
+	${SFML_INCLUDE_DIR}
+	${GLEW_INCLUDE_PATH}
+	${GLM_INCLUDE_PATH})
 
-include_directories(${SFML_INCLUDE_DIR} ${OPENGL_INCLUDE_DIRS})
 link_directories(${OPENGL_LIBRARY_DIRS})
 add_definitions(${OPENGL_DEFINITIONS})
 
 add_executable(path_tracer ${PATHTRACER_SOURCE_FILES})
-add_executable(test_ui ${TESTUI_SOURCE_FILES})
 
-target_link_libraries(path_tracer ${SFML_LIBRARIES})
-target_link_libraries(test_ui ${SFML_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARY})
+target_link_libraries(
+	path_tracer 
+	${SFML_LIBRARIES})
+

@@ -153,11 +153,11 @@ void work()
 	Scene scene;
 	scene.setCamera(&camera);
 	scene.setAmbient(Vec(0.0f, 0.0f, 0.0f));
-	scene.setEnvironmentMap(&glacier);
-	//scene.add(&S);
-	//scene.add(&S2);
+	//scene.setEnvironmentMap(&glacier);
+	scene.add(&S);
+	scene.add(&S2);
 	//scene.add(&SL);
-	//scene.addEmitter(&SL);
+	scene.addEmitter(&SL);
 	//scene.addEmitter(&pointLight);
 	scene.add(&P);
 	//scene.add(&P2);

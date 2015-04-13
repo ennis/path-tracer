@@ -142,9 +142,6 @@ Vec PathRenderer::evaluateDirectLighting(Intersection const &isect)
 //===================================================
 // PathRenderer::trace (private)
 // evaluate outgoing radiance at a given point
-// isect -> texture sampling  ..........-> blend -> RETURN
-//       -> material sampling -> trace..
-
 Vec PathRenderer::trace(Ray const& R, unsigned int depth, bool seeLight, bool debug)
 {
 	// Stop tracing when the maximum depth is reached

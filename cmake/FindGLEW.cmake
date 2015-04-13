@@ -9,15 +9,14 @@
 
 IF (WIN32)
 	FIND_PATH( GLEW_INCLUDE_PATH GL/glew.h
-		$ENV{LOCAL_EXTRA}/include
 		$ENV{PROGRAMFILES}/GLEW/include
 		${PROJECT_SOURCE_DIR}/src/nvgl/glew/include
+		C:/Users/Alexandre/Developpement/libs/glew-1.9.0/include
 		DOC "The directory where GL/glew.h resides")
 	FIND_LIBRARY( GLEW_LIBRARY
 		NAMES glew GLEW glew32 glew32s
 		PATHS
-		C:/Users/Alexandre/Developpement/glew-1.9.0/lib
-		$ENV{LOCAL_EXTRA}/lib
+		C:/Users/Alexandre/Developpement/libs/glew-1.9.0/lib
 		${PROJECT_SOURCE_DIR}/src/nvgl/glew/bin
 		${PROJECT_SOURCE_DIR}/src/nvgl/glew/lib
 		DOC "The GLEW library")
@@ -27,7 +26,6 @@ ELSE (WIN32)
 		/usr/local/include
 		/sw/include
 		/opt/local/include
-		$ENV{LOCAL_EXTRA}/include
 		DOC "The directory where GL/glew.h resides")
 	FIND_LIBRARY( GLEW_LIBRARY
 		NAMES GLEW glew
@@ -38,7 +36,6 @@ ELSE (WIN32)
 		/usr/local/lib
 		/sw/lib
 		/opt/local/lib
-		$ENV{LOCAL_EXTRA}/lib
 		DOC "The GLEW library")
 ENDIF (WIN32)
 

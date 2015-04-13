@@ -3,6 +3,8 @@
 #include "ray.hpp"
 #include "transform.hpp"
 
+#include <algorithm>
+
 struct AABB 
 {
 	AABB()
