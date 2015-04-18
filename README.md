@@ -16,6 +16,6 @@ Requires SFML2
 
 ## Screenshots
 
-![](https://github.com/ennis/path-tracer/raw/master/screenshots/diffuse2.png "Soft shadows with an area light source (approx 1000 samples per pixel)")
+![](https://github.com/ennis/path-tracer/raw/master/screenshots/diffuse2.png "Soft shadows with an area light source")
 ![](https://github.com/ennis/path-tracer/raw/master/screenshots/envmap.png "Environment maps & meshes")
 ![](https://github.com/ennis/path-tracer/raw/master/screenshots/early_indirect.png "Early version with different surface types")
